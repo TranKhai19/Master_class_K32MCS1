@@ -1,0 +1,71 @@
+# ==============================================================================
+# SMART HOME IoT BIG DATA - GITIGNORE CONFIGURATION
+# ==============================================================================
+
+# --- Python Bytecode & Cache ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- Virtual Environments ---
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# --- IDEs & Code Editors ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# --- Operating System Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# --- Microsoft Office Temporary & Lock Files ---
+~$*.docx
+~$*.xlsx
+~$*.pptx
+*.tmp
+
+# --- MySQL Workbench Backup Files ---
+*.mwb.bak
+
+# --- Environment Variables & Secrets ---
+.env
+.env.local
+.env.*.local
+*.env
+
+# --- Big Data & Large Generated Logs (Optional Override) ---
+*.log
+# bigdata/data/device_telemetry.json  # Bỏ chú thích nếu không muốn đẩy tệp viễn thám thô lên GitHub

@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home IoT Analytics Dashboard - Big Data & NoSQL</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        darkbg: '#0f172a',
+                        darkcard: '#1e293b',
+                        darkborder: '#334155'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar">
+
+    <!-- TOP HEADER -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i data-lucide="cpu" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg font-bold tracking-tight text-white">SMART HOME IoT ANALYTICS</h1>
+                        <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">Giai đoạn 3: NoSQL / Hadoop</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Đề tài: Hệ thống Giám sát & Quản lý thiết bị IoT • Học viên: <span class="text-slate-200 font-medium">Trần Duy Khải (K32MCS1)</span></p>
+                </div>
+            </div>
+
+            <!-- FILTERS & ACTIONS -->
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
+                <div class="flex items-center space-x-2 bg-slate-800/80 border border-slate-700/80 rounded-lg px-3 py-1.5">
+                    <i data-lucide="home" class="w-4 h-4 text-slate-400"></i>
+                    <select id="homeFilter" class="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer">
+                        <option value="all" class="bg-slate-800 text-white">Toàn bộ 16 Căn hộ</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 font-medium">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Live Pipeline Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVIGATION TABS -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/60">
+            <nav class="flex space-x-1 sm:space-x-4 py-2 overflow-x-auto text-xs font-medium" id="tabNav">
+                <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="tab-btn px-3 py-2 rounded-lg transition-all text-blue-400 bg-blue-500/10 border border-blue-500/20 flex items-center gap-2">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Tổng quan Hệ thống
+                </button>
+                <button onclick="switchTab('tab-pipeline')" id="btn-tab-pipeline" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                    <i data-lucide="git-merge" class="w-4 h-4"></i> Luồng NoSQL / Hadoop
+                </button>
+                <button onclick="switchTab('tab-energy')" id="btn-tab-energy" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                    <i data-lucide="zap" class="w-4 h-4"></i> Phân tích Điện năng
+                </button>
+                <button onclick="switchTab('tab-anomaly')" id="btn-tab-anomaly" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> Giám sát An toàn & Bất thường
+                </button>
+                <button onclick="switchTab('tab-business')" id="btn-tab-business" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                    <i data-lucide="wallet" class="w-4 h-4"></i> Kinh doanh & Gói cước
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+
+        <!-- ================= KPI STATS CARDS ================= -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Card 1: Devices -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Thiết bị IoT</span>
+                    <i data-lucide="hard-drive" class="w-4 h-4 text-blue-400"></i>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="kpi-devices" class="text-2xl font-bold text-white tracking-tight">30</span>
+                    <span id="kpi-device-status" class="text-xs text-emerald-400 font-medium">28 Online</span>
+                </div>
+                <div class="mt-1 text-xs text-slate-400">Trên 16 căn hộ & 25 phòng</div>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-400"></div>
+            </div>
+
+            <!-- Card 2: Telemetry Records -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Dữ liệu NoSQL/HDFS</span>
+                    <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="kpi-records" class="text-2xl font-bold text-white tracking-tight">13,506</span>
+                    <span class="text-xs text-cyan-400 font-medium">Bản ghi</span>
+                </div>
+                <div class="mt-1 text-xs text-slate-400">Log viễn thám chuỗi thời gian</div>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-teal-400"></div>
+            </div>
+
+            <!-- Card 3: Total Energy -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Tổng Điện năng Tiêu thụ</span>
+                    <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="kpi-energy" class="text-2xl font-bold text-white tracking-tight">--</span>
+                    <span class="text-xs text-amber-400 font-medium">kWh</span>
+                </div>
+                <div class="mt-1 text-xs text-slate-400">
+                    <span id="kpi-peak-pct" class="text-amber-300 font-medium">--%</span> giờ cao điểm
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-400"></div>
+            </div>
+
+            <!-- Card 4: Anomalies -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Cảnh báo An toàn</span>
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="kpi-anomalies" class="text-2xl font-bold text-rose-400 tracking-tight">--</span>
+                    <span class="text-xs text-rose-400/80 font-medium">Sự cố</span>
+                </div>
+                <div class="mt-1 text-xs text-slate-400">
+                    <span id="kpi-thermal-count" class="text-rose-300 font-medium">--</span> Quá nhiệt • <span id="kpi-overload-count" class="text-amber-300 font-medium">--</span> Quá tải
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-red-600"></div>
+            </div>
+
+            <!-- Card 5: Subscription Revenue -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between text-slate-400 text-xs">
+                    <span>Doanh thu Thuê bao</span>
+                    <i data-lucide="badge-dollar-sign" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div class="mt-2 flex items-baseline gap-1">
+                    <span id="kpi-revenue" class="text-2xl font-bold text-emerald-400 tracking-tight">--</span>
+                    <span class="text-xs text-emerald-300 font-medium">đ</span>
+                </div>
+                <div class="mt-1 text-xs text-slate-400">
+                    <span id="kpi-paid-subs" class="text-emerald-300 font-medium">--</span> thuê bao đã thanh toán
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-green-400"></div>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 1: EXECUTIVE OVERVIEW ================= -->
+        <div id="tab-overview" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Power Trend Chart -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                                <i data-lucide="activity" class="w-4 h-4 text-blue-400"></i> Biến thiên Công suất Tiêu thụ 24 Giờ (Watts)
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Xác định khung giờ cao điểm (Peak: 11h-13h & 18h-22h) để đề xuất kịch bản tiết kiệm điện</p>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">Hourly Aggregate</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="chartHourlyPower"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Doughnut -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-1">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i> Cơ cấu Tiêu thụ theo Chủng loại
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">Điều hòa (Climate) chiếm tỷ trọng năng lượng áp đảo</p>
+                        <div class="h-48 relative flex items-center justify-center">
+                            <canvas id="chartCategoryDoughnut"></canvas>
+                        </div>
+                    </div>
+                    <div id="categorySummaryList" class="mt-4 space-y-2 text-xs border-t border-slate-800 pt-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Columns: Top Consuming Homes & Recent Anomalies -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Top Consuming Homes -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-3">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-amber-400"></i> Bảng Xếp hạng Tiêu thụ Điện theo Căn hộ (kWh)
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-800/60 text-slate-400 uppercase text-[10px] tracking-wider">
+                                <tr>
+                                    <th class="py-2.5 px-3 rounded-l">Căn hộ</th>
+                                    <th class="py-2.5 px-3">Khu vực</th>
+                                    <th class="py-2.5 px-3">Thiết bị</th>
+                                    <th class="py-2.5 px-3 rounded-r text-right">Tổng kWh</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableHomeRanking" class="divide-y divide-slate-800">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Anomaly Alerts -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="bell-ring" class="w-4 h-4 text-rose-400"></i> Sự cố Cảnh báo Bất thường Mới nhất
+                        </h3>
+                        <span class="text-xs text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">Realtime Feed</span>
+                    </div>
+                    <div id="recentAnomaliesList" class="space-y-2.5 max-h-80 overflow-y-auto custom-scrollbar pr-1">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================= TAB 2: DATA PIPELINE & NOSQL/HADOOP ================= -->
+        <div id="tab-pipeline" class="tab-content hidden space-y-6">
+            <!-- Pipeline Architecture Diagram -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="git-fork" class="w-5 h-5 text-blue-400"></i> Sơ đồ Luồng Dữ liệu Đa tầng (Hybrid RDBMS + NoSQL + Hadoop)
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Chu trình xử lý từ Edge Sensors $\rightarrow$ NoSQL Hot Tier $\rightarrow$ Hadoop Data Lake Cold Tier $\rightarrow$ Analytics</p>
+                    </div>
+                    <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full font-medium">Đồ án CSDL Nâng Cao</span>
+                </div>
+
+                <!-- Step-by-step Flow Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-3 relative">
+                    <!-- Step 1 -->
+                    <div class="bg-slate-800/80 border border-slate-700/70 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">TẦNG 1</span>
+                            <h4 class="text-xs font-bold text-white mt-2">IoT Edge Gateways</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">30 thiết bị gửi log viễn thám qua giao thức MQTT / HTTP REST với tần suất 15-30 phút/lần.</p>
+                        </div>
+                        <div class="mt-3 text-[10px] text-cyan-400 font-mono">Payload: JSON Stream</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-slate-800/80 border border-slate-700/70 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">TẦNG 2: HOT STORE</span>
+                            <h4 class="text-xs font-bold text-white mt-2">MongoDB NoSQL</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Lưu trữ linh hoạt Collections: <code>device_telemetry</code> & <code>command_logs</code>. Đánh compound index tối ưu truy vấn thời gian thực.</p>
+                        </div>
+                        <div class="mt-3 text-[10px] text-emerald-400 font-mono">Indexing: {dev_id, ts}</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-slate-800/80 border border-slate-700/70 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">TẦNG 3: COLD STORE</span>
+                            <h4 class="text-xs font-bold text-white mt-2">Hadoop HDFS / Lake</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Định kỳ nén sang định dạng cột Parquet (Snappy) phân vùng <code>year/month/day</code> phục vụ lưu trữ dung lượng lớn dài hạn.</p>
+                        </div>
+                        <div class="mt-3 text-[10px] text-amber-400 font-mono">Format: Parquet / ORC</div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-slate-800/80 border border-slate-700/70 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">TẦNG 4: BATCH ANALYTICS</span>
+                            <h4 class="text-xs font-bold text-white mt-2">PySpark / MapReduce</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Đối soát dữ liệu RDBMS MySQL với log HDFS: tính toán kWh, dò tìm quá nhiệt, quá tải và kiểm tra chính sách retention.</p>
+                        </div>
+                        <div class="mt-3 text-[10px] text-purple-400 font-mono">Engine: Spark Batch</div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="bg-slate-800/80 border border-slate-700/70 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">TẦNG 5: VISUALIZATION</span>
+                            <h4 class="text-xs font-bold text-white mt-2">Command Center</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Cung cấp báo cáo trực quan tức thời cho người dùng quản lý nhà thông minh và đối soát doanh thu quản trị viên.</p>
+                        </div>
+                        <div class="mt-3 text-[10px] text-rose-400 font-mono">UI: Flask & Chart.js</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Data Documents Inspector -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- NoSQL Telemetry Document -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">NoSQL BSON Document Mẫu: <code>device_telemetry</code></h4>
+                        </div>
+                        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Time-series Collection</span>
+                    </div>
+                    <pre id="jsonSampleTelemetry" class="bg-slate-950 p-4 rounded-lg text-xs font-mono text-emerald-400 overflow-x-auto max-h-80 custom-scrollbar border border-slate-800/80"></pre>
+                </div>
+
+                <!-- Command Log Document -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Audit Trail Document Mẫu: <code>command_logs</code></h4>
+                        </div>
+                        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Command History</span>
+                    </div>
+                    <pre id="jsonSampleCommand" class="bg-slate-950 p-4 rounded-lg text-xs font-mono text-cyan-400 overflow-x-auto max-h-80 custom-scrollbar border border-slate-800/80"></pre>
+                </div>
+            </div>
+
+            <!-- Command Source & Latency Profile -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+                    <i data-lucide="radio" class="w-4 h-4 text-purple-400"></i> Đánh giá Hiệu năng Điều khiển & Độ trễ Mạng (Command Latency & Source Profiling)
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="commandSourceCards">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================= TAB 3: ENERGY & LOAD ANALYTICS ================= -->
+        <div id="tab-energy" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Daily Consumption Bar -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i> Tiêu thụ Năng lượng theo Ngày (kWh)
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">Tổng hợp sản lượng điện sinh hoạt toàn hệ thống qua các ngày trong tháng</p>
+                    <div class="h-64">
+                        <canvas id="chartDailyEnergy"></canvas>
+                    </div>
+                </div>
+
+                <!-- Peak vs Off-Peak Insights -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-1">
+                            <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i> Phân bổ Khung giờ Điện lực EVN
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">Tỷ lệ sử dụng điện giữa Giờ Cao Điểm và Giờ Thấp Điểm</p>
+                        <div class="h-48 flex items-center justify-center">
+                            <canvas id="chartPeakDoughnut"></canvas>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-200">
+                        <div class="font-bold flex items-center gap-1.5 mb-1">
+                            <i data-lucide="lightbulb" class="w-4 h-4 text-amber-400"></i> Đề xuất Tối ưu Chi phí:
+                        </div>
+                        <p class="text-slate-300">Hệ thống khuyến nghị tự động lập lịch hạ công suất điều hòa hoặc tắt đèn tự động vào khung giờ cao điểm (18:00 - 22:00) để tiết kiệm lên tới 25% hóa đơn tiền điện.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Detailed Ranking Table -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-3">
+                    <i data-lucide="table" class="w-4 h-4 text-blue-400"></i> Chi tiết Tiêu thụ Năng lượng của 16 Căn hộ trong Hệ thống
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-800/60 text-slate-400 uppercase text-[10px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4 rounded-l">Mã</th>
+                                <th class="py-3 px-4">Tên Bất động sản / Căn hộ</th>
+                                <th class="py-3 px-4">Thành phố</th>
+                                <th class="py-3 px-4">Số thiết bị online</th>
+                                <th class="py-3 px-4 text-right">Tổng sản lượng (kWh)</th>
+                                <th class="py-3 px-4 rounded-r text-right">Ước tính cước (VNĐ)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableFullHomeRanking" class="divide-y divide-slate-800">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================= TAB 4: ANOMALY & HEALTH CENTER ================= -->
+        <div id="tab-anomaly" class="tab-content hidden space-y-6">
+            <!-- Severity Filter -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+                    <span class="text-xs text-slate-300 font-medium">Lọc theo Mức độ Nghiêm trọng:</span>
+                    <div class="flex gap-2 text-xs">
+                        <button onclick="filterSeverity('all')" class="sev-btn active px-3 py-1 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">Tất cả</button>
+                        <button onclick="filterSeverity('CRITICAL')" class="sev-btn px-3 py-1 rounded bg-slate-800 text-slate-400 hover:text-white">Critical (Quá nhiệt)</button>
+                        <button onclick="filterSeverity('HIGH')" class="sev-btn px-3 py-1 rounded bg-slate-800 text-slate-400 hover:text-white">High (Quá tải W)</button>
+                        <button onclick="filterSeverity('MEDIUM')" class="sev-btn px-3 py-1 rounded bg-slate-800 text-slate-400 hover:text-white">Medium (Offline)</button>
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-400">
+                    Hệ thống tự động phát hiện bằng thuật toán đối soát ngưỡng danh định trong Big Data Job
+                </div>
+            </div>
+
+            <!-- Full Anomaly Table -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-800/60 text-slate-400 uppercase text-[10px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4 rounded-l">Thời điểm</th>
+                                <th class="py-3 px-4">Mức độ</th>
+                                <th class="py-3 px-4">Thiết bị</th>
+                                <th class="py-3 px-4">Căn hộ</th>
+                                <th class="py-3 px-4">Loại sự cố</th>
+                                <th class="py-3 px-4">Giá trị đo lường</th>
+                                <th class="py-3 px-4 rounded-r">Nội dung chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableFullAnomalies" class="divide-y divide-slate-800">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================= TAB 5: SUBSCRIPTION & RETENTION ================= -->
+        <div id="tab-business" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Revenue by Plan Bar Chart -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-400"></i> Cơ cấu Doanh thu theo Gói Cước (VNĐ)
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">Gói Enterprise Lifetime và Premium Pro mang lại dòng tiền chủ đạo</p>
+                    <div class="h-64">
+                        <canvas id="chartPlanRevenue"></canvas>
+                    </div>
+                </div>
+
+                <!-- Subscribers Status Doughnut -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i> Trạng thái Hợp đồng Thuê bao
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">Phân bổ 18 giao dịch: PAID vs PENDING vs EXPIRED</p>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="chartSubStatus"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retention Days Compliance Audit Table -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-blue-400"></i> Đối soát Chính sách Lưu trữ Dữ liệu Lớn (Retention Days Compliance)
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Kiểm tra thời gian lưu trữ thực tế trong NoSQL/HDFS so với cam kết gói cước (Free: 7d, Standard: 30d, Pro: 90d, Enterprise: 365d)</p>
+                    </div>
+                    <span class="text-xs px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">Data Lifecycle Management</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-800/60 text-slate-400 uppercase text-[10px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4 rounded-l">Hợp đồng #</th>
+                                <th class="py-3 px-4">Căn hộ</th>
+                                <th class="py-3 px-4">Gói dịch vụ</th>
+                                <th class="py-3 px-4">Chính sách (Ngày)</th>
+                                <th class="py-3 px-4">Lưu trữ thực tế</th>
+                                <th class="py-3 px-4">Trạng thái Cước</th>
+                                <th class="py-3 px-4 rounded-r">Tuân thủ SLA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableRetentionAudit" class="divide-y divide-slate-800">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
+        <p>Hệ thống Giám sát & Quản lý thiết bị IoT Nhà thông minh • Đề tài Capstone CSDL Nâng Cao</p>
+        <p class="mt-1">Thực hiện bởi: <span class="text-slate-400 font-medium">Trần Duy Khải</span> — Lớp <span class="text-slate-400 font-medium">K32MCS1</span></p>
+    </footer>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // Global variables & Charts
+        let chartHourly, chartCategory, chartDaily, chartPeak, chartRevenue, chartStatus;
+        let globalOverview = {}, globalEnergy = {}, globalAnomalies = [], globalBusiness = {}, globalCommands = {};
+        let currentSeverityFilter = 'all';
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Switch Tabs
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-blue-400', 'bg-blue-500/10', 'border', 'border-blue-500/20');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('text-blue-400', 'bg-blue-500/10', 'border', 'border-blue-500/20');
+            activeBtn.classList.remove('text-slate-400');
+
+            // Trigger chart resize if needed
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        // Fetch Data on Load
+        async function initDashboard() {
+            try {
+                // 1. Fetch Homes for filter
+                const resHomes = await fetch('/api/homes');
+                const homes = await resHomes.json();
+                const sel = document.getElementById('homeFilter');
+                homes.forEach(h => {
+                    const opt = document.createElement('option');
+                    opt.value = h.home_id;
+                    opt.textContent = `#${h.home_id} - ${h.name} (${h.city})`;
+                    opt.className = "bg-slate-800 text-white";
+                    sel.appendChild(opt);
+                });
+
+                sel.addEventListener('change', () => {
+                    loadData(sel.value);
+                });
+
+                // 2. Fetch Pipeline Info
+                loadPipelineInfo();
+
+                // 3. Load Main Data
+                await loadData('all');
+
+            } catch (err) {
+                console.error("Error initializing dashboard:", err);
+            }
+        }
+
+        async function loadData(homeId) {
+            const query = homeId !== 'all' ? `?home_id=${homeId}` : '';
+
+            // Fetch Overview
+            const resOverview = await fetch('/api/overview');
+            globalOverview = await resOverview.json();
+            renderKPIs(globalOverview);
+
+            // Fetch Energy
+            const resEnergy = await fetch('/api/energy-analytics' + query);
+            globalEnergy = await resEnergy.json();
+            renderEnergyCharts(globalEnergy);
+
+            // Fetch Anomalies
+            const resAnomalies = await fetch('/api/anomalies' + query);
+            globalAnomalies = await resAnomalies.json();
+            renderAnomalies(globalAnomalies);
+
+            // Fetch Business
+            const resBusiness = await fetch('/api/business');
+            globalBusiness = await resBusiness.json();
+            renderBusiness(globalBusiness);
+
+            // Fetch Commands
+            const resCommands = await fetch('/api/commands');
+            globalCommands = await resCommands.json();
+            renderCommands(globalCommands);
+        }
+
+        function renderKPIs(kpi) {
+            document.getElementById('kpi-devices').textContent = kpi.total_devices || 30;
+            document.getElementById('kpi-device-status').textContent = `${kpi.active_devices || 28} Online`;
+            document.getElementById('kpi-records').textContent = (kpi.total_telemetry_records || 13506).toLocaleString();
+            document.getElementById('kpi-energy').textContent = (kpi.total_system_kwh || 0).toLocaleString();
+            document.getElementById('kpi-peak-pct').textContent = `${kpi.peak_energy_percent || 0}%`;
+            document.getElementById('kpi-anomalies').textContent = kpi.total_anomalies_detected || 0;
+            document.getElementById('kpi-thermal-count').textContent = `${kpi.thermal_alerts_count || 0}`;
+            document.getElementById('kpi-overload-count').textContent = `${kpi.power_overload_count || 0}`;
+            document.getElementById('kpi-revenue').textContent = (kpi.total_revenue_vnd || 0).toLocaleString();
+            document.getElementById('kpi-paid-subs').textContent = `${kpi.paid_subscriptions_count || 0}/${(kpi.paid_subscriptions_count + kpi.pending_subscriptions_count + kpi.expired_subscriptions_count) || 18}`;
+        }
+
+        function renderEnergyCharts(data) {
+            // 1. Hourly Chart
+            const ctxHourly = document.getElementById('chartHourlyPower').getContext('2d');
+            if (chartHourly) chartHourly.destroy();
+
+            const hourly = data.hourly || { labels: [], avg_power_watts: [] };
+            chartHourly = new Chart(ctxHourly, {
+                type: 'line',
+                data: {
+                    labels: hourly.labels,
+                    datasets: [{
+                        label: 'Công suất tiêu thụ TB (Watts)',
+                        data: hourly.avg_power_watts,
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 2,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+
+            // 2. Category Doughnut Chart
+            const ctxCat = document.getElementById('chartCategoryDoughnut').getContext('2d');
+            if (chartCategory) chartCategory.destroy();
+
+            const catSummary = data.category_summary || [];
+            const catLabels = catSummary.map(c => c.category);
+            const catKwh = catSummary.map(c => c.total_kwh);
+            const catColors = ['#38bdf8', '#fbbf24', '#a855f7', '#f43f5e'];
+
+            chartCategory = new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catKwh,
+                        backgroundColor: catColors,
+                        borderWidth: 2,
+                        borderColor: '#0f172a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 10 } } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // Populate Category summary list
+            const catListEl = document.getElementById('categorySummaryList');
+            catListEl.innerHTML = '';
+            catSummary.forEach((c, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between text-slate-300";
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${catColors[idx % catColors.length]}"></span>
+                        <span>${c.category}</span>
+                    </div>
+                    <span class="font-semibold text-white">${c.total_kwh} kWh <span class="text-slate-400 font-normal">(${c.percentage}%)</span></span>
+                `;
+                catListEl.appendChild(div);
+            });
+
+            // 3. Home Ranking Table (Overview)
+            const homeTable = document.getElementById('tableHomeRanking');
+            homeTable.innerHTML = '';
+            const ranking = data.home_ranking || [];
+            ranking.slice(0, 6).forEach((h, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-medium text-white flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-slate-800 text-[10px] flex items-center justify-center text-slate-300 font-bold">${idx + 1}</span>
+                        ${h.home_name}
+                    </td>
+                    <td class="py-2.5 px-3 text-slate-400">${h.city}</td>
+                    <td class="py-2.5 px-3">${h.active_devices_count} TB</td>
+                    <td class="py-2.5 px-3 text-right font-semibold text-amber-400">${h.total_kwh}</td>
+                `;
+                homeTable.appendChild(tr);
+            });
+
+            // 4. Full Home Ranking Table (Tab Energy)
+            const fullHomeTable = document.getElementById('tableFullHomeRanking');
+            fullHomeTable.innerHTML = '';
+            ranking.forEach(h => {
+                const estPrice = Math.round(h.total_kwh * 2500); // 2500d/kWh
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono text-slate-400">#${h.home_id}</td>
+                    <td class="py-3 px-4 font-medium text-white">${h.home_name}</td>
+                    <td class="py-3 px-4 text-slate-400">${h.city}</td>
+                    <td class="py-3 px-4 text-emerald-400 font-medium">${h.active_devices_count} hoạt động</td>
+                    <td class="py-3 px-4 text-right font-bold text-amber-400">${h.total_kwh} kWh</td>
+                    <td class="py-3 px-4 text-right font-semibold text-emerald-300">${estPrice.toLocaleString()} đ</td>
+                `;
+                fullHomeTable.appendChild(tr);
+            });
+
+            // 5. Daily Energy Chart (Tab Energy)
+            const ctxDaily = document.getElementById('chartDailyEnergy').getContext('2d');
+            if (chartDaily) chartDaily.destroy();
+            const daily = data.daily || { labels: [], total_kwh: [] };
+            chartDaily = new Chart(ctxDaily, {
+                type: 'bar',
+                data: {
+                    labels: daily.labels,
+                    datasets: [{
+                        label: 'Sản lượng (kWh)',
+                        data: daily.total_kwh,
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // 6. Peak vs Off-Peak Doughnut
+            const ctxPeak = document.getElementById('chartPeakDoughnut').getContext('2d');
+            if (chartPeak) chartPeak.destroy();
+            const peakKwh = globalOverview.peak_energy_kwh || 50;
+            const offPeakKwh = globalOverview.offpeak_energy_kwh || 50;
+            chartPeak = new Chart(ctxPeak, {
+                type: 'pie',
+                data: {
+                    labels: ['Giờ Cao Điểm (Peak)', 'Giờ Thường / Thấp Điểm'],
+                    datasets: [{
+                        data: [peakKwh, offPeakKwh],
+                        backgroundColor: ['#f59e0b', '#3b82f6'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 10 } } } }
+                }
+            });
+        }
+
+        function renderAnomalies(anomalies) {
+            // 1. Overview recent anomalies (Max 5)
+            const recentEl = document.getElementById('recentAnomaliesList');
+            recentEl.innerHTML = '';
+            anomalies.slice(0, 5).forEach(a => {
+                const item = document.createElement('div');
+                item.className = "p-3 rounded-lg bg-slate-800/70 border border-slate-700/60 flex items-start justify-between gap-3 text-xs";
+                
+                let badgeClass = "bg-rose-500/20 text-rose-300 border-rose-500/30";
+                if (a.severity === 'HIGH') badgeClass = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+                if (a.severity === 'MEDIUM') badgeClass = "bg-blue-500/20 text-blue-300 border-blue-500/30";
+
+                item.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${a.severity}</span>
+                            <span class="font-medium text-white">${a.device_name}</span>
+                            <span class="text-slate-400 text-[11px]">(${a.home_name})</span>
+                        </div>
+                        <p class="text-slate-300 text-[11px] mt-1">${a.detail}</p>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-mono whitespace-nowrap">${a.timestamp.split(' ')[1]}</span>
+                `;
+                recentEl.appendChild(item);
+            });
+
+            // 2. Full Table Anomalies (Tab Anomaly)
+            renderFullAnomalyTable();
+        }
+
+        function filterSeverity(sev) {
+            currentSeverityFilter = sev;
+            document.querySelectorAll('.sev-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-500/20', 'text-blue-300', 'border', 'border-blue-500/30');
+                btn.classList.add('bg-slate-800', 'text-slate-400');
+            });
+            event.target.classList.add('bg-blue-500/20', 'text-blue-300', 'border', 'border-blue-500/30');
+            event.target.classList.remove('bg-slate-800', 'text-slate-400');
+            renderFullAnomalyTable();
+        }
+
+        function renderFullAnomalyTable() {
+            const table = document.getElementById('tableFullAnomalies');
+            table.innerHTML = '';
+            
+            const filtered = currentSeverityFilter === 'all' 
+                ? globalAnomalies 
+                : globalAnomalies.filter(a => a.severity.toUpperCase() === currentSeverityFilter.toUpperCase());
+
+            if (filtered.length === 0) {
+                table.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500">Không có bản ghi bất thường phù hợp tiêu chí lọc.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(a => {
+                let badgeClass = "bg-rose-500/20 text-rose-300 border-rose-500/30";
+                if (a.severity === 'HIGH') badgeClass = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+                if (a.severity === 'MEDIUM') badgeClass = "bg-blue-500/20 text-blue-300 border-blue-500/30";
+
+                const valStr = a.measured_temp ? `${a.measured_temp} °C` : (a.measured_power ? `${a.measured_power} W` : 'N/A');
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono text-slate-400 text-[11px]">${a.timestamp}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${a.severity}</span></td>
+                    <td class="py-3 px-4 font-medium text-white">${a.device_name}</td>
+                    <td class="py-3 px-4 text-slate-400">${a.home_name}</td>
+                    <td class="py-3 px-4 font-mono text-slate-300">${a.reason}</td>
+                    <td class="py-3 px-4 font-bold text-amber-400">${valStr}</td>
+                    <td class="py-3 px-4 text-slate-300">${a.detail}</td>
+                `;
+                table.appendChild(tr);
+            });
+        }
+
+        async function loadPipelineInfo() {
+            try {
+                const res = await fetch('/api/pipeline-info');
+                const info = await res.json();
+                document.getElementById('jsonSampleTelemetry').textContent = JSON.stringify(info.sample_telemetry, null, 2);
+                document.getElementById('jsonSampleCommand').textContent = JSON.stringify(info.sample_command, null, 2);
+            } catch (e) {
+                console.error("Error loading pipeline info:", e);
+            }
+        }
+
+        function renderCommands(commands) {
+            const cardsContainer = document.getElementById('commandSourceCards');
+            cardsContainer.innerHTML = '';
+            const sources = commands.source_summary || [];
+
+            sources.forEach(s => {
+                const div = document.createElement('div');
+                div.className = "p-4 rounded-xl bg-slate-800/70 border border-slate-700/60";
+                div.innerHTML = `
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span class="font-bold text-white uppercase">${s.source}</span>
+                        <i data-lucide="smartphone" class="w-4 h-4 text-purple-400"></i>
+                    </div>
+                    <div class="mt-2 text-xl font-bold text-white">${s.total_commands} <span class="text-xs text-slate-400 font-normal">lệnh</span></div>
+                    <div class="mt-2 flex items-center justify-between text-xs pt-2 border-t border-slate-700/40">
+                        <span class="text-slate-400">Tỷ lệ thành công:</span>
+                        <span class="font-semibold text-emerald-400">${s.success_rate}%</span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Độ trễ trung bình:</span>
+                        <span class="font-semibold text-purple-300">${s.avg_latency_ms} ms</span>
+                    </div>
+                `;
+                cardsContainer.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function renderBusiness(biz) {
+            // 1. Revenue Chart
+            const ctxRev = document.getElementById('chartPlanRevenue').getContext('2d');
+            if (chartRevenue) chartRevenue.destroy();
+            const revData = biz.plan_revenue || {};
+            const revLabels = Object.keys(revData);
+            const revValues = Object.values(revData);
+
+            chartRevenue = new Chart(ctxRev, {
+                type: 'bar',
+                data: {
+                    labels: revLabels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: revValues,
+                        backgroundColor: '#10b981',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // 2. Status Doughnut
+            const ctxStat = document.getElementById('chartSubStatus').getContext('2d');
+            if (chartStatus) chartStatus.destroy();
+            const statData = biz.status_distribution || {};
+            chartStatus = new Chart(ctxStat, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Đã Thanh toán (PAID)', 'Chờ Thanh toán (PENDING)', 'Đã Hết hạn (EXPIRED)'],
+                    datasets: [{
+                        data: [statData.PAID || 0, statData.PENDING || 0, statData.EXPIRED || 0],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 10 } } } }
+                }
+            });
+
+            // 3. Retention Audit Table
+            const retTable = document.getElementById('tableRetentionAudit');
+            retTable.innerHTML = '';
+            const auditList = biz.retention_audit || [];
+
+            auditList.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition-colors";
+
+                let statusBadge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+                if (a.payment_status === 'PENDING') statusBadge = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+                if (a.payment_status === 'EXPIRED') statusBadge = "bg-rose-500/20 text-rose-300 border-rose-500/30";
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono text-slate-400">#SUB-${a.subscription_id}</td>
+                    <td class="py-3 px-4 font-medium text-white">${a.home_name}</td>
+                    <td class="py-3 px-4 text-cyan-300 font-medium">${a.plan_name}</td>
+                    <td class="py-3 px-4 font-bold text-white">${a.retention_policy_days} ngày</td>
+                    <td class="py-3 px-4 text-slate-300">${a.actual_stored_days} ngày</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${statusBadge}">${a.payment_status}</span></td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">COMPLIANT (Tuân thủ)</span></td>
+                `;
+                retTable.appendChild(tr);
+            });
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
