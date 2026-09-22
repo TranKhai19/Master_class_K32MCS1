@@ -16,9 +16,23 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 DATA_DIR = os.path.join(ROOT_DIR, "bigdata", "data")
 BULK_DIR = os.path.join(ROOT_DIR, "bulk_data")
 MYSQL_UPLOADS_DIR = "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/bulk_data"
+
+try:
+    from bigdata.hadoop_stream_engine import hadoop_engine
+except ImportError:
+    hadoop_engine = None
+
+try:
+    from dashboard.db_manager import db_manager
+except ImportError:
+    db_manager = None
+
 
 # Danh mục bảng RDBMS và đường dẫn file CSV tương ứng
 RDBMS_TABLES_CONFIG = {
@@ -141,11 +155,19 @@ def index():
 def api_overview():
     data = get_analytics_data()
     overview = data.get("kpi_overview", {})
-    # Cập nhật tổng số thiết bị và bản ghi phản ánh dữ liệu lớn đã nạp
-    overview["total_rdbms_records"] = 7000012
-    overview["total_users"] = 1000000
-    overview["total_homes"] = 1000000
-    overview["total_devices"] = 1000000
+    if db_manager:
+        stats = db_manager.get_overview_stats()
+        overview["total_rdbms_records"] = stats["total_records"]
+        overview["total_users"] = stats["total_users"]
+        overview["total_homes"] = stats["total_homes"]
+        overview["total_devices"] = stats["total_devices"]
+        overview["db_source"] = stats["db_source"]
+        overview["mysql_connected"] = stats["mysql_connected"]
+    else:
+        overview["total_rdbms_records"] = 7000012
+        overview["total_users"] = 1000000
+        overview["total_homes"] = 1000000
+        overview["total_devices"] = 1000000
     return jsonify(overview)
 
 @app.route("/api/homes")
@@ -199,12 +221,117 @@ def api_business():
     data = get_analytics_data()
     return jsonify(data.get("business_analytics", {}))
 
+@app.route("/api/homes/full-details")
+def api_homes_full_details():
+    """
+    Truy vấn danh mục căn hộ từ Cơ sở dữ liệu RDBMS (MySQL / Data Lake)
+    Hỗ trợ phân trang mượt mà, lọc theo thành phố, tìm kiếm tức thì và sắp xếp.
+    """
+    page = request.args.get("page", 1, type=int)
+    page_size = request.args.get("page_size", 12, type=int)
+    city = request.args.get("city", "Tất cả")
+    search = request.args.get("search", "").strip()
+    sort = request.args.get("sort", "id_asc")
+    
+    live_states = hadoop_engine.home_states if hadoop_engine else {}
+    if db_manager:
+        result = db_manager.get_homes(
+            page=page,
+            page_size=page_size,
+            city=city,
+            search=search,
+            sort=sort,
+            hadoop_live_states=live_states
+        )
+        return jsonify(result)
+        
+    return jsonify({"status": "ERROR", "message": "DB Manager chưa khởi tạo"}), 500
+
+@app.route("/api/homes/<int:home_id>/devices")
+def api_home_devices(home_id):
+    """
+    Truy vấn chi tiết danh sách thiết bị IoT của bất kỳ căn hộ nào trong CSDL
+    """
+    if db_manager:
+        devs = db_manager.get_home_devices(home_id)
+        return jsonify({
+            "status": "SUCCESS",
+            "home_id": home_id,
+            "total_devices": len(devs),
+            "devices": devs
+        })
+    return jsonify({"status": "ERROR", "devices": []}), 500
+
+@app.route("/api/db/status")
+def api_db_status():
+    if db_manager:
+        return jsonify(db_manager.get_overview_stats())
+    return jsonify({"status": "ERROR", "mysql_connected": False}), 500
+
+@app.route("/api/db/connect", methods=["POST"])
+def api_db_connect():
+    if not db_manager:
+        return jsonify({"success": False, "message": "DB Manager not initialized"}), 500
+    data = request.get_json() or {}
+    host = data.get("host", "127.0.0.1")
+    port = data.get("port", 3306)
+    user = data.get("user", "root")
+    password = data.get("password", "")
+    database = data.get("database", "smart_home_info")
+    
+    success = db_manager.try_connect_mysql(host=host, port=port, user=user, password=password, database=database)
+    return jsonify({
+        "success": success,
+        "mysql_connected": db_manager.mysql_connected,
+        "db_source": db_manager.get_overview_stats()["db_source"],
+        "error": db_manager.last_error
+    })
+
+@app.route("/api/hadoop/live-stream")
+def api_hadoop_live_stream():
+    """
+    Luồng Hadoop HDFS Data Lake & MapReduce Micro-batch streaming động
+    """
+    if hadoop_engine:
+        home_ids_param = request.args.get("home_ids", "")
+        target_ids = []
+        if home_ids_param:
+            for item in home_ids_param.split(","):
+                item = item.strip()
+                if item.isdigit():
+                    target_ids.append(int(item))
+                    
+        batch = hadoop_engine.get_micro_batch(active_home_ids=target_ids if target_ids else None)
+        return jsonify(batch)
+    return jsonify({"status": "ERROR", "message": "Hadoop Engine not initialized"}), 500
+
+@app.route("/api/hadoop/trigger-surge", methods=["GET", "POST"])
+def api_hadoop_trigger_surge():
+    """
+    Kích hoạt xung đột biến mẫu (quá tải/quá nhiệt) trên bất kỳ căn hộ nào
+    """
+    home_id = request.args.get("home_id")
+    if not home_id and request.is_json:
+        home_id = request.json.get("home_id")
+    if home_id:
+        try:
+            home_id = int(home_id)
+        except ValueError:
+            home_id = None
+    if hadoop_engine:
+        res = hadoop_engine.trigger_surge(home_id)
+        return jsonify(res)
+    return jsonify({"status": "ERROR", "message": "Hadoop Engine not available"}), 500
+
+
 @app.route("/api/realtime/live-stream")
 def api_realtime_stream():
     """
     Mô phỏng luồng viễn thám Real-time IoT Stream (MQTT/Kafka Ingestion)
     Bắn dữ liệu đo tức thời từ các thiết bị thông minh phục vụ Demo Giai đoạn 3
     """
+    if hadoop_engine:
+        return jsonify(hadoop_engine.get_micro_batch())
     import random
     from datetime import datetime
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

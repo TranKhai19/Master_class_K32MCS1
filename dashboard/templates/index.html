@@ -70,40 +70,56 @@
             </div>
 
             <!-- FILTERS & ACTIONS -->
-            <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
-                <div class="flex items-center space-x-2 bg-slate-800/80 border border-slate-700/80 rounded-lg px-3 py-1.5">
+            <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+                <div class="flex items-center space-x-2 bg-slate-800/80 border border-slate-700/80 rounded-lg px-3 py-1.5 shadow-sm">
                     <i data-lucide="home" class="w-4 h-4 text-slate-400"></i>
                     <select id="homeFilter" class="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer">
                         <option value="all" class="bg-slate-800 text-white">Toàn bộ 16 Căn hộ</option>
                     </select>
                 </div>
 
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 font-medium">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>Live Pipeline Active</span>
-                </div>
+                <!-- DB Status & Config Button -->
+                <button onclick="openDbConfigModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-xs text-blue-300 font-medium transition-all shadow-sm cursor-pointer" title="Kiểm tra & Cấu hình kết nối MySQL 8.0 Live Engine">
+                    <i data-lucide="database" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span id="btnDbStatusText">CSDL: 1,000,000 Homes</span>
+                </button>
+
+                <!-- Toggle Stream Button -->
+                <button id="btnToggleStream" onclick="toggleHadoopStream()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs text-emerald-400 font-medium transition-all shadow-sm cursor-pointer" title="Bật/Tắt luồng nạp và xử lý phân tán Hadoop">
+                    <span id="streamDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="streamStatusText">Hadoop Streaming: ON</span>
+                </button>
+
+                <!-- Simulate Surge Anomaly Button -->
+                <button onclick="triggerHadoopSurge()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-xs text-rose-300 font-medium transition-all shadow-sm cursor-pointer" title="Giả lập xung đột biến quá nhiệt / quá tải để kiểm thử phản ứng cảnh báo của Hadoop">
+                    <i data-lucide="zap-off" class="w-3.5 h-3.5 text-rose-400"></i>
+                    <span>Mô phỏng Sự cố</span>
+                </button>
             </div>
         </div>
 
         <!-- NAVIGATION TABS -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/60">
-            <nav class="flex space-x-1 sm:space-x-3 py-2 overflow-x-auto text-xs font-medium" id="tabNav">
-                <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="tab-btn px-3 py-2 rounded-lg transition-all text-blue-400 bg-blue-500/10 border border-blue-500/20 flex items-center gap-2">
+            <nav class="flex space-x-1 sm:space-x-2 py-2 overflow-x-auto text-xs font-medium custom-scrollbar" id="tabNav">
+                <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="tab-btn px-3 py-2 rounded-lg transition-all text-blue-400 bg-blue-500/10 border border-blue-500/20 flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Tổng quan Hệ thống
                 </button>
-                <button onclick="switchTab('tab-rdbms')" id="btn-tab-rdbms" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                <button onclick="switchTab('tab-homes')" id="btn-tab-homes" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="building-2" class="w-4 h-4 text-emerald-400"></i> Căn hộ CSDL (1,000,000)
+                </button>
+                <button onclick="switchTab('tab-rdbms')" id="btn-tab-rdbms" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i> Dữ liệu RDBMS (7 Triệu Bản ghi)
                 </button>
-                <button onclick="switchTab('tab-pipeline')" id="btn-tab-pipeline" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                <button onclick="switchTab('tab-pipeline')" id="btn-tab-pipeline" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="git-merge" class="w-4 h-4"></i> Luồng NoSQL / Hadoop
                 </button>
-                <button onclick="switchTab('tab-energy')" id="btn-tab-energy" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
-                    <i data-lucide="zap" class="w-4 h-4"></i> Phân tích Điện năng
+                <button onclick="switchTab('tab-energy')" id="btn-tab-energy" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Phân tích Điện năng
                 </button>
-                <button onclick="switchTab('tab-anomaly')" id="btn-tab-anomaly" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
-                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> Giám sát An toàn & Bất thường
+                <button onclick="switchTab('tab-anomaly')" id="btn-tab-anomaly" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i> Giám sát An toàn & Bất thường
                 </button>
-                <button onclick="switchTab('tab-business')" id="btn-tab-business" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                <button onclick="switchTab('tab-business')" id="btn-tab-business" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="wallet" class="w-4 h-4"></i> Kinh doanh & Gói cước
                 </button>
             </nav>
@@ -112,6 +128,39 @@
 
     <!-- MAIN CONTAINER -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+
+        <!-- ================= HADOOP STREAM INGESTION TERMINAL BAR ================= -->
+        <section class="bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800/90 rounded-xl p-3.5 shadow-md flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-2.5 py-1 rounded-md">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                    <span class="font-mono text-cyan-300 font-semibold tracking-wide">HADOOP HDFS DATA LAKE</span>
+                </div>
+                <div class="hidden md:flex items-center gap-1.5 text-slate-400 font-mono text-[11px]">
+                    <i data-lucide="folder-git-2" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span id="liveHdfsPartition">/datalake/smart_home/telemetry/year=2026/month=09/day=22/</span>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 font-mono text-[11px]">
+                <div class="flex items-center gap-1.5 text-slate-300">
+                    <span class="text-slate-500">Node:</span>
+                    <span id="liveDataNode" class="text-indigo-300 font-semibold">datanode-01.hadoop.cluster</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-slate-300">
+                    <span class="text-slate-500">Block:</span>
+                    <span id="liveHdfsBlock" class="text-cyan-300 font-bold">BLK-1043.parquet</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-slate-300">
+                    <span class="text-slate-500">Throughput:</span>
+                    <span id="liveThroughput" class="text-emerald-400 font-bold">280 msg/s • 540 KB/s</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-slate-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">
+                    <i data-lucide="cpu" class="w-3 h-3 text-amber-400"></i>
+                    <span id="liveMicroBatch">MapReduce Micro-batch: 30 tuples / 16 homes</span>
+                </div>
+            </div>
+        </section>
 
         <!-- ================= KPI STATS CARDS ================= -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -143,18 +192,22 @@
                 <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-teal-400"></div>
             </div>
 
-            <!-- Card 3: Total Energy -->
+            <!-- Card 3: Total Energy & Live Power -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
                 <div class="flex items-center justify-between text-slate-400 text-xs">
-                    <span>Tổng Điện năng Tiêu thụ</span>
+                    <span>Tổng Điện & Phụ tải</span>
                     <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
                 </div>
                 <div class="mt-2 flex items-baseline gap-2">
                     <span id="kpi-energy" class="text-2xl font-bold text-white tracking-tight">--</span>
                     <span class="text-xs text-amber-400 font-medium">kWh</span>
+                    <span class="text-[11px] text-slate-400 ml-auto">Tải: <b id="kpi-power" class="text-amber-300 font-mono">-- W</b></span>
                 </div>
-                <div class="mt-1 text-xs text-slate-400">
-                    <span id="kpi-peak-pct" class="text-amber-300 font-medium">--%</span> giờ cao điểm
+                <div class="mt-1 text-xs text-slate-400 flex items-center justify-between">
+                    <span><span id="kpi-peak-pct" class="text-amber-300 font-medium">--%</span> cao điểm</span>
+                    <span class="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Live Hadoop
+                    </span>
                 </div>
                 <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-400"></div>
             </div>
@@ -233,9 +286,15 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Top Consuming Homes -->
                 <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-                    <h3 class="text-sm font-semibold text-white flex items-center gap-2 mb-3">
-                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-amber-400"></i> Bảng Xếp hạng Tiêu thụ Điện theo Căn hộ (kWh)
-                    </h3>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-amber-400"></i> Bảng Xếp hạng Tiêu thụ Điện theo Căn hộ (kWh)
+                        </h3>
+                        <button onclick="switchTab('tab-homes')" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 cursor-pointer">
+                            <span>Xem Đủ 16 Căn hộ</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
                             <thead class="bg-slate-800/60 text-slate-400 uppercase text-[10px] tracking-wider">
@@ -243,6 +302,7 @@
                                     <th class="py-2.5 px-3 rounded-l">Căn hộ</th>
                                     <th class="py-2.5 px-3">Khu vực</th>
                                     <th class="py-2.5 px-3">Thiết bị</th>
+                                    <th class="py-2.5 px-3 text-right">Tải tức thời</th>
                                     <th class="py-2.5 px-3 rounded-r text-right">Tổng kWh</th>
                                 </tr>
                             </thead>
@@ -268,6 +328,116 @@
             </div>
         </div>
 
+        <!-- ================= TAB: ALL DATABASE HOMES & SMART ESTATES ================= -->
+        <div id="tab-homes" class="tab-content hidden space-y-6">
+            <!-- Header Banner for DB Homes -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="building-2" class="w-5 h-5 text-emerald-400"></i> Quản lý Căn hộ trong Toàn bộ Cơ sở Dữ liệu
+                        </h2>
+                        <span id="homes-total-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">1,000,000 Căn hộ trong CSDL</span>
+                        <span id="homes-source-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-mono">MySQL Engine / Data Lake</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Truy vấn phân tán & streaming thời gian thực từ 1,000,000 căn hộ và 1,000,000 thiết bị IoT (kết nối trực tiếp MySQL 8.0 / Hadoop Data Lake).</p>
+                </div>
+
+                <!-- Filter by City Buttons -->
+                <div class="flex flex-wrap items-center gap-1.5 text-xs" id="cityFilterGroup">
+                    <button onclick="filterHomesByCity('all')" class="city-btn px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold transition-all cursor-pointer" data-city="all">Tất cả (1M)</button>
+                    <button onclick="filterHomesByCity('TP.HCM')" class="city-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer" data-city="TP.HCM">TP.HCM</button>
+                    <button onclick="filterHomesByCity('Hà Nội')" class="city-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer" data-city="Hà Nội">Hà Nội</button>
+                    <button onclick="filterHomesByCity('Đà Nẵng')" class="city-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer" data-city="Đà Nẵng">Đà Nẵng</button>
+                    <button onclick="filterHomesByCity('Cần Thơ')" class="city-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer" data-city="Cần Thơ">Cần Thơ</button>
+                    <button onclick="filterHomesByCity('Hải Phòng')" class="city-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer" data-city="Hải Phòng">Hải Phòng</button>
+                    <button onclick="filterHomesByCity('Nha Trang')" class="city-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer" data-city="Nha Trang">Nha Trang</button>
+                    <button onclick="filterHomesByCity('Huế')" class="city-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer" data-city="Huế">Huế</button>
+                    <button onclick="filterHomesByCity('Hội An')" class="city-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer" data-city="Hội An">Hội An</button>
+                </div>
+            </div>
+
+            <!-- Search & Controls Bar -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl">
+                <div class="relative w-full md:w-96">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                    <input type="text" id="homeSearchInput" onkeyup="onHomeSearchKeyup(event)" placeholder="🔍 Nhập mã (#500), tên căn hộ, địa chỉ, chủ hộ..." class="w-full pl-9 pr-8 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500">
+                    <button onclick="clearHomeSearch()" id="btnClearSearch" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 w-full md:w-auto justify-end">
+                    <!-- Sort -->
+                    <div class="flex items-center gap-1.5">
+                        <span>Sắp xếp:</span>
+                        <select id="homeSortSelect" onchange="onHomeSortChange()" class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none cursor-pointer">
+                            <option value="id_asc">Mã căn hộ (Tăng dần)</option>
+                            <option value="id_desc">Mã căn hộ (Giảm dần)</option>
+                            <option value="power_desc">Phụ tải tức thời cao nhất</option>
+                            <option value="kwh_desc">Điện năng lũy kế (kWh)</option>
+                            <option value="name_asc">Tên căn hộ (A → Z)</option>
+                        </select>
+                    </div>
+
+                    <!-- Page Size -->
+                    <div class="flex items-center gap-1.5">
+                        <span>Hiển thị:</span>
+                        <select id="homePageSizeSelect" onchange="onHomePageSizeChange()" class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none cursor-pointer">
+                            <option value="12">12 / trang</option>
+                            <option value="24" selected>24 / trang</option>
+                            <option value="48">48 / trang</option>
+                            <option value="96">96 / trang</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Pagination Bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 px-4 py-2.5 rounded-xl text-xs">
+                <div class="text-slate-400 flex items-center gap-2">
+                    <span id="homesRangeText">Đang tải dữ liệu...</span>
+                    <span id="homesLoadingSpinner" class="hidden w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></span>
+                </div>
+                
+                <!-- Pagination Buttons -->
+                <div class="flex items-center gap-1.5">
+                    <button onclick="changeHomesPageFirst()" id="btnHomesFirst" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 font-mono transition-colors" title="Trang đầu">« Đầu</button>
+                    <button onclick="changeHomesPage(-1)" id="btnHomesPrev" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 transition-colors">‹ Trước</button>
+                    <div class="flex items-center gap-1 font-mono text-white px-2">
+                        <span>Trang</span>
+                        <span id="homesCurrentPage" class="font-bold text-cyan-400">1</span>
+                        <span>/</span>
+                        <span id="homesTotalPages" class="text-slate-400">83,334</span>
+                    </div>
+                    <button onclick="changeHomesPage(1)" id="btnHomesNext" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 transition-colors">Sau ›</button>
+                    <button onclick="changeHomesPageLast()" id="btnHomesLast" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 font-mono transition-colors" title="Trang cuối">Cuối »</button>
+
+                    <!-- Jump input -->
+                    <div class="hidden lg:flex items-center gap-1 ml-3 pl-3 border-l border-slate-800">
+                        <span class="text-slate-500">Đến trang:</span>
+                        <input type="number" id="jumpPageInput" min="1" class="w-16 px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-center text-white font-mono text-xs focus:outline-none focus:border-cyan-500" placeholder="Số">
+                        <button onclick="jumpToHomesPage()" class="px-2 py-0.5 rounded bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-300 border border-cyan-500/30 text-xs font-medium cursor-pointer">Đi</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Home Cards -->
+            <div id="homesCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-h-[300px]">
+                <!-- Dynamically populated by JS from database -->
+            </div>
+
+            <!-- Bottom Pagination Bar -->
+            <div class="flex items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 px-4 py-2.5 rounded-xl text-xs">
+                <div class="text-slate-400">
+                    <span>Trang <b id="homesCurrentPageBtm" class="text-cyan-400">1</b> của <b id="homesTotalPagesBtm">83,334</b> trang</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="changeHomesPageFirst()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono">« Đầu</button>
+                    <button onclick="changeHomesPage(-1)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">‹ Trước</button>
+                    <button onclick="changeHomesPage(1)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">Sau ›</button>
+                    <button onclick="changeHomesPageLast()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono">Cuối »</button>
+                </div>
+            </div>
+        </div>
 
         <!-- ================= TAB 2: DATA PIPELINE & NOSQL/HADOOP ================= -->
         <div id="tab-pipeline" class="tab-content hidden space-y-6">
@@ -645,6 +815,96 @@
 
     </main>
 
+    <!-- ================= MODAL: HOME DEVICES DETAILS ================= -->
+    <div id="homeDevicesModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalHomeTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                            Chi tiết Thiết bị Căn hộ
+                        </h3>
+                        <p id="modalHomeSubtitle" class="text-xs text-slate-400 mt-0.5">Danh sách các thiết bị IoT vật lý đã cài đặt và cấu hình</p>
+                    </div>
+                </div>
+                <button onclick="closeHomeDevicesModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-5 overflow-y-auto flex-1 custom-scrollbar space-y-3" id="modalDevicesList">
+                <!-- Populated by JS -->
+            </div>
+            <div class="p-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between text-xs text-slate-400">
+                <span id="modalDevicesCountInfo">3 thiết bị cài đặt</span>
+                <button onclick="closeHomeDevicesModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white transition-colors cursor-pointer">Đóng cửa sổ</button>
+            </div>
+        </div>
+    <!-- ================= DATABASE CONFIGURATION MODAL ================= -->
+    <div id="dbConfigModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                        <i data-lucide="database" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Cấu hình Kết nối MySQL 8.0</h3>
+                        <p class="text-[11px] text-slate-400">Kết nối native engine hoặc sử dụng Data Lake Store</p>
+                    </div>
+                </div>
+                <button onclick="closeDbConfigModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-5 space-y-3 text-xs">
+                <div class="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60 text-[11px] space-y-1">
+                    <div class="flex justify-between"><span class="text-slate-400">Trạng thái hiện tại:</span> <span id="modalDbStatus" class="font-bold text-cyan-300">MySQL Data Lake Store</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Tổng căn hộ:</span> <span id="modalDbHomes" class="font-mono text-emerald-400 font-bold">1,000,000</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Thư mục Uploads:</span> <span class="font-mono text-slate-300 text-[10px] truncate max-w-[200px]">C:/.../MySQL Server 8.0/Uploads</span></div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Host & Cổng</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="cfgDbHost" value="127.0.0.1" class="col-span-2 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-xs">
+                        <input type="number" id="cfgDbPort" value="3306" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-xs">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Tài khoản (Username)</label>
+                    <input type="text" id="cfgDbUser" value="root" class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-xs">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Mật khẩu (Password)</label>
+                    <input type="password" id="cfgDbPassword" placeholder="Nhập mật khẩu MySQL của bạn..." class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-xs focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Tên Database</label>
+                    <input type="text" id="cfgDbName" value="smart_home_info" class="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-xs">
+                </div>
+                <div id="dbConnectFeedback" class="hidden p-2.5 rounded-lg text-[11px] font-medium"></div>
+            </div>
+            <div class="p-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between text-xs">
+                <span class="text-slate-500 text-[10px]">Nhấn Kết nối để chạy Live SQL</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="closeDbConfigModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">Đóng</button>
+                    <button onclick="submitDbConnect()" id="btnSubmitDbConnect" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="link-2" class="w-3.5 h-3.5"></i>
+                        <span>Kết nối Trực tiếp</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= FLOATING TOAST NOTIFICATION CONTAINER ================= -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none flex flex-col items-end">
+        <!-- Dynamic toast alerts emitted by Hadoop Engine -->
+    </div>
+
     <!-- FOOTER -->
     <footer class="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
         <p>Hệ thống Giám sát & Quản lý thiết bị IoT Nhà thông minh • Đề tài Capstone CSDL Nâng Cao</p>
@@ -665,6 +925,23 @@
         let rdbmsOverviewData = null;
         let rdbmsLoaded = false;
 
+        // ==========================================================
+        // 1,000,000 HOMES & BIG DATA STREAMING STATE
+        // ==========================================================
+        let currentHomesPage = 1;
+        let currentHomesPageSize = 24;
+        let currentHomesTotal = 1000000;
+        let currentHomesTotalPages = 41667;
+        let currentHomesCity = 'all';
+        let currentHomesSearch = '';
+        let currentHomesSort = 'id_asc';
+        let currentVisibleHomeIds = [];
+        let visibleHomesData = [];
+        let hadoopStreamingActive = true;
+        let hadoopStreamInterval = null;
+        let knownAnomalyKeys = new Set();
+        let searchDebounceTimer = null;
+
         // Initialize Lucide Icons
         lucide.createIcons();
 
@@ -676,14 +953,22 @@
                 btn.classList.add('text-slate-400');
             });
 
-            document.getElementById(tabId).classList.remove('hidden');
-            const activeBtn = document.getElementById('btn-' + tabId);
+            const targetId = tabId.startsWith('tab-') ? tabId : 'tab-' + tabId;
+            const targetTab = document.getElementById(targetId) || document.getElementById(tabId);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            const btnId = tabId.startsWith('tab-') ? 'btn-' + tabId : 'btn-tab-' + tabId;
+            const activeBtn = document.getElementById(btnId) || document.getElementById('btn-' + tabId);
             if (activeBtn) {
                 activeBtn.classList.add('text-blue-400', 'bg-blue-500/10', 'border', 'border-blue-500/20');
                 activeBtn.classList.remove('text-slate-400');
             }
 
-            if (tabId === 'tab-rdbms' && !rdbmsLoaded) {
+            if (targetId === 'tab-homes') {
+                if (visibleHomesData.length === 0) {
+                    loadFullHomes(1);
+                }
+            } else if (targetId === 'tab-rdbms' && !rdbmsLoaded) {
                 loadRdbmsOverview();
                 loadTableData('User', 1, '');
                 rdbmsLoaded = true;
@@ -696,21 +981,23 @@
         // Fetch Data on Load
         async function initDashboard() {
             try {
-                // 1. Fetch Homes for filter
+                // 1. Fetch Homes for filter dropdown
                 const resHomes = await fetch('/api/homes');
                 const homes = await resHomes.json();
                 const sel = document.getElementById('homeFilter');
-                homes.forEach(h => {
-                    const opt = document.createElement('option');
-                    opt.value = h.home_id;
-                    opt.textContent = `#${h.home_id} - ${h.name} (${h.city})`;
-                    opt.className = "bg-slate-800 text-white";
-                    sel.appendChild(opt);
-                });
+                if (sel && homes.length > 0) {
+                    homes.forEach(h => {
+                        const opt = document.createElement('option');
+                        opt.value = h.home_id;
+                        opt.textContent = `#${h.home_id} - ${h.name} (${h.city})`;
+                        opt.className = "bg-slate-800 text-white";
+                        sel.appendChild(opt);
+                    });
 
-                sel.addEventListener('change', () => {
-                    loadData(sel.value);
-                });
+                    sel.addEventListener('change', () => {
+                        loadData(sel.value);
+                    });
+                }
 
                 // 2. Fetch Pipeline Info
                 loadPipelineInfo();
@@ -718,9 +1005,690 @@
                 // 3. Load Main Data
                 await loadData('all');
 
+                // 4. Load full 1,000,000 Homes details (Page 1)
+                await loadFullHomes(1);
+
+                // 5. Start Hadoop Realtime Stream Polling
+                startHadoopStreaming();
+
+                // 6. Check Database connection status
+                checkDbStatus();
+
             } catch (err) {
                 console.error("Error initializing dashboard:", err);
             }
+        }
+
+        // ==========================================================
+        // 1,000,000 HOMES & DATABASE DATA CONTROLLER
+        // ==========================================================
+        async function loadFullHomes(page = 1) {
+            const grid = document.getElementById('homesCardsGrid');
+            const spinner = document.getElementById('homesLoadingSpinner');
+            const rangeText = document.getElementById('homesRangeText');
+
+            if (page < 1) page = 1;
+            if (page > currentHomesTotalPages && currentHomesTotalPages > 0) page = currentHomesTotalPages;
+            currentHomesPage = page;
+
+            if (spinner) spinner.classList.remove('hidden');
+
+            try {
+                const params = new URLSearchParams({
+                    page: currentHomesPage,
+                    page_size: currentHomesPageSize,
+                    city: currentHomesCity,
+                    search: currentHomesSearch,
+                    sort: currentHomesSort
+                });
+
+                const res = await fetch(`/api/homes/full-details?${params.toString()}`);
+                const data = await res.json();
+
+                if (data.status === 'SUCCESS') {
+                    visibleHomesData = data.homes || [];
+                    currentHomesTotal = data.total_count || 0;
+                    currentHomesTotalPages = data.total_pages || 1;
+                    currentHomesPage = data.page || 1;
+                    currentVisibleHomeIds = visibleHomesData.map(h => h.home_id);
+
+                    // Update Top Badges & Source
+                    const badgeTotal = document.getElementById('homes-total-badge');
+                    if (badgeTotal) badgeTotal.textContent = `${currentHomesTotal.toLocaleString()} Căn hộ trong CSDL`;
+                    
+                    const badgeSrc = document.getElementById('homes-source-badge');
+                    if (badgeSrc) badgeSrc.textContent = data.data_source || 'MySQL / Lake Store';
+
+                    // Update Pagination text
+                    const startIdx = (currentHomesPage - 1) * currentHomesPageSize + (visibleHomesData.length > 0 ? 1 : 0);
+                    const endIdx = (currentHomesPage - 1) * currentHomesPageSize + visibleHomesData.length;
+                    if (rangeText) {
+                        rangeText.textContent = `Hiển thị ${startIdx.toLocaleString()} - ${endIdx.toLocaleString()} / ${currentHomesTotal.toLocaleString()} căn hộ (${data.data_source || 'MySQL Engine'})`;
+                    }
+
+                    // Update Page numbers
+                    const curP1 = document.getElementById('homesCurrentPage');
+                    const totP1 = document.getElementById('homesTotalPages');
+                    const curP2 = document.getElementById('homesCurrentPageBtm');
+                    const totP2 = document.getElementById('homesTotalPagesBtm');
+                    const jumpIn = document.getElementById('jumpPageInput');
+
+                    if (curP1) curP1.textContent = currentHomesPage.toLocaleString();
+                    if (totP1) totP1.textContent = currentHomesTotalPages.toLocaleString();
+                    if (curP2) curP2.textContent = currentHomesPage.toLocaleString();
+                    if (totP2) totP2.textContent = currentHomesTotalPages.toLocaleString();
+                    if (jumpIn) {
+                        jumpIn.value = currentHomesPage;
+                        jumpIn.max = currentHomesTotalPages;
+                    }
+
+                    // Disable/Enable Nav buttons
+                    const isFirst = currentHomesPage <= 1;
+                    const isLast = currentHomesPage >= currentHomesTotalPages;
+
+                    const btnFirst = document.getElementById('btnHomesFirst');
+                    const btnPrev = document.getElementById('btnHomesPrev');
+                    const btnNext = document.getElementById('btnHomesNext');
+                    const btnLast = document.getElementById('btnHomesLast');
+
+                    if (btnFirst) btnFirst.disabled = isFirst;
+                    if (btnPrev) btnPrev.disabled = isFirst;
+                    if (btnNext) btnNext.disabled = isLast;
+                    if (btnLast) btnLast.disabled = isLast;
+
+                    // Render Cards
+                    renderHomesGrid(visibleHomesData, grid);
+                } else {
+                    if (grid) grid.innerHTML = `<div class="col-span-full py-12 text-center text-rose-400 text-xs">Lỗi tải dữ liệu: ${data.message}</div>`;
+                }
+            } catch (err) {
+                console.error("Error loading full homes:", err);
+                if (grid) grid.innerHTML = `<div class="col-span-full py-12 text-center text-rose-400 text-xs">Không thể kết nối máy chủ dữ liệu.</div>`;
+            } finally {
+                if (spinner) spinner.classList.add('hidden');
+            }
+        }
+
+        function renderHomesGrid(homes, grid) {
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (homes.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500 text-xs">Không tìm thấy căn hộ nào khớp với tiêu chí tìm kiếm.</div>`;
+                return;
+            }
+
+            const cityColors = {
+                'Đà Nẵng': 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+                'Hà Nội': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                'TP.HCM': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+                'Hội An': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                'Hải Phòng': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                'Cần Thơ': 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+                'Nha Trang': 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+                'Huế': 'bg-violet-500/10 text-violet-400 border-violet-500/20'
+            };
+
+            homes.forEach(h => {
+                const live = h.live_metrics || { current_power_w: 0, accumulated_kwh: 0, temperature_c: 26, status: 'NORMAL' };
+                const sub = h.subscription || { plan_name: 'Standard Cloud', retention_days: 30 };
+                const cBadge = cityColors[h.city] || 'bg-slate-800 text-slate-300';
+                
+                let cardBorder = 'border-slate-800 hover:border-slate-700';
+                let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> BÌNH THƯỜNG</span>`;
+                
+                if (live.status === 'CRITICAL_ALERT') {
+                    cardBorder = 'border-rose-500/60 ring-1 ring-rose-500/30';
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> CẢNH BÁO NGUY HIỂM</span>`;
+                } else if (live.status === 'HIGH_LOAD' || live.current_power_w > 2500) {
+                    cardBorder = 'border-amber-500/40';
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> PHỤ TẢI CAO</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.id = `card-estate-${h.home_id}`;
+                card.className = `bg-slate-900 border ${cardBorder} rounded-xl p-4 flex flex-col justify-between shadow-sm transition-all duration-300 hover:shadow-md relative overflow-hidden group`;
+                card.innerHTML = `
+                    <div>
+                        <!-- Card Header -->
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <div>
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">#HOME-${h.home_id}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-medium border ${cBadge}">${h.city}</span>
+                                </div>
+                                <h3 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">${h.name}</h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-1" title="${h.address}">${h.address}</p>
+                            </div>
+                            <div id="home-status-badge-${h.home_id}">
+                                ${statusBadge}
+                            </div>
+                        </div>
+
+                        <!-- Owner & Cloud Plan Section -->
+                        <div class="bg-slate-950/60 rounded-lg p-2.5 my-2.5 border border-slate-800/80 space-y-1.5 text-[11px]">
+                            <div class="flex items-center justify-between text-slate-300">
+                                <span class="text-slate-400 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3 text-slate-500"></i> Chủ hộ:</span>
+                                <span class="font-medium text-white">${h.owner_name}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-300">
+                                <span class="text-slate-400 flex items-center gap-1"><i data-lucide="cloud" class="w-3 h-3 text-cyan-500"></i> Gói Cloud:</span>
+                                <span class="font-semibold text-cyan-300">${sub.plan_name} (${sub.retention_days} ngày)</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-300">
+                                <span class="text-slate-400 flex items-center gap-1"><i data-lucide="layers" class="w-3 h-3 text-indigo-400"></i> Loại BĐS:</span>
+                                <span class="truncate max-w-[140px]" title="${h.property_type}">${h.property_type}</span>
+                            </div>
+                        </div>
+
+                        <!-- Realtime Hadoop Metrics Grid -->
+                        <div class="grid grid-cols-3 gap-1.5 text-center my-2.5 pt-1 border-t border-slate-800/80">
+                            <div class="bg-slate-800/50 rounded-lg p-1.5">
+                                <div class="text-[10px] text-slate-400 uppercase tracking-wider">Tải Live</div>
+                                <div id="home-live-w-${h.home_id}" class="text-xs font-bold text-amber-400 font-mono mt-0.5">${live.current_power_w.toLocaleString()} W</div>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-1.5">
+                                <div class="text-[10px] text-slate-400 uppercase tracking-wider">Lũy kế</div>
+                                <div id="home-live-kwh-${h.home_id}" class="text-xs font-bold text-emerald-300 font-mono mt-0.5">${live.accumulated_kwh} kWh</div>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-1.5">
+                                <div class="text-[10px] text-slate-400 uppercase tracking-wider">Nhiệt độ</div>
+                                <div id="home-live-temp-${h.home_id}" class="text-xs font-bold text-cyan-300 font-mono mt-0.5">${live.temperature_c} °C</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="pt-2.5 border-t border-slate-800/80 flex items-center gap-2">
+                        <button onclick="openHomeDevicesModal(${h.home_id})" class="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-400"></i>
+                            <span>${h.active_devices_count}/${h.devices_count} Thiết bị</span>
+                        </button>
+                        <button onclick="filterHomeFromCard(${h.home_id})" class="py-1.5 px-3 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer" title="Lọc toàn bộ Dashboard theo căn hộ này">
+                            <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                            <span>Lọc</span>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        // ==========================================================
+        // PAGINATION & FILTER HANDLERS
+        // ==========================================================
+        function changeHomesPage(delta) {
+            const target = currentHomesPage + delta;
+            if (target >= 1 && target <= currentHomesTotalPages) {
+                loadFullHomes(target);
+            }
+        }
+
+        function changeHomesPageFirst() {
+            if (currentHomesPage !== 1) loadFullHomes(1);
+        }
+
+        function changeHomesPageLast() {
+            if (currentHomesPage !== currentHomesTotalPages) loadFullHomes(currentHomesTotalPages);
+        }
+
+        function jumpToHomesPage() {
+            const input = document.getElementById('jumpPageInput');
+            if (!input) return;
+            let target = parseInt(input.value);
+            if (isNaN(target)) return;
+            if (target < 1) target = 1;
+            if (target > currentHomesTotalPages) target = currentHomesTotalPages;
+            loadFullHomes(target);
+        }
+
+        function filterHomesByCity(city) {
+            currentHomesCity = (city === 'all') ? '' : city;
+            document.querySelectorAll('.city-btn').forEach(btn => {
+                if (btn.getAttribute('data-city') === city) {
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                    btn.classList.add('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30', 'font-semibold');
+                } else {
+                    btn.classList.add('bg-slate-800', 'text-slate-300');
+                    btn.classList.remove('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30', 'font-semibold');
+                }
+            });
+            loadFullHomes(1);
+        }
+
+        function onHomeSearchKeyup(e) {
+            const btnClear = document.getElementById('btnClearSearch');
+            const val = e.target.value;
+            if (btnClear) {
+                if (val.length > 0) btnClear.classList.remove('hidden');
+                else btnClear.classList.add('hidden');
+            }
+            if (e.key === 'Enter') {
+                clearTimeout(searchDebounceTimer);
+                currentHomesSearch = val.trim();
+                loadFullHomes(1);
+                return;
+            }
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                currentHomesSearch = val.trim();
+                loadFullHomes(1);
+            }, 350);
+        }
+
+        function clearHomeSearch() {
+            const input = document.getElementById('homeSearchInput');
+            const btnClear = document.getElementById('btnClearSearch');
+            if (input) input.value = '';
+            if (btnClear) btnClear.classList.add('hidden');
+            currentHomesSearch = '';
+            loadFullHomes(1);
+        }
+
+        function onHomeSortChange() {
+            const sel = document.getElementById('homeSortSelect');
+            if (sel) {
+                currentHomesSort = sel.value;
+                loadFullHomes(1);
+            }
+        }
+
+        function onHomePageSizeChange() {
+            const sel = document.getElementById('homePageSizeSelect');
+            if (sel) {
+                currentHomesPageSize = parseInt(sel.value) || 24;
+                loadFullHomes(1);
+            }
+        }
+
+        // ==========================================================
+        // DYNAMIC DEVICES MODAL
+        // ==========================================================
+        async function openHomeDevicesModal(homeId) {
+            const modal = document.getElementById('homeDevicesModal');
+            const titleEl = document.getElementById('modalHomeTitle');
+            const subEl = document.getElementById('modalHomeSubtitle');
+            const countEl = document.getElementById('modalDevicesCountInfo');
+            const listEl = document.getElementById('modalDevicesList');
+            if (!modal || !listEl) return;
+
+            modal.classList.remove('hidden');
+            listEl.innerHTML = `<div class="py-12 text-center text-slate-400 flex flex-col items-center gap-2">
+                <div class="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-xs">Đang nạp danh sách thiết bị IoT từ Cơ sở Dữ liệu...</span>
+            </div>`;
+
+            try {
+                const res = await fetch(`/api/homes/${homeId}/devices`);
+                const data = await res.json();
+                if (data.status === 'SUCCESS') {
+                    titleEl.innerHTML = `<i data-lucide="building-2" class="w-5 h-5 text-emerald-400"></i> #HOME-${data.home_id}: ${data.home_name}`;
+                    subEl.textContent = `Chủ sở hữu: ${data.owner_name} • Địa chỉ: ${data.address} (${data.city})`;
+                    countEl.textContent = `Tổng cộng ${data.devices_count} thiết bị IoT (${data.active_devices_count} Online) — Nguồn: ${data.data_source}`;
+
+                    listEl.innerHTML = '';
+                    (data.devices || []).forEach(d => {
+                        const isActive = d.status === 'ACTIVE';
+                        const statusBadge = isActive 
+                            ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ONLINE</span>`
+                            : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> OFFLINE</span>`;
+
+                        const devCard = document.createElement('div');
+                        devCard.className = "bg-slate-800/80 border border-slate-700/80 rounded-xl p-3.5 flex items-center justify-between gap-3 text-xs";
+                        devCard.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-slate-700/70 flex items-center justify-center text-blue-400 font-bold font-mono">
+                                    #${d.device_id}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-white text-sm flex items-center gap-2">
+                                        <span>${d.name}</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 font-normal">${d.category}</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-3 font-mono">
+                                        <span>Quy chuẩn: <b class="text-slate-200">${d.type_name}</b></span>
+                                        <span>Định mức: <b class="text-amber-400">${d.rated_power_w} W</b></span>
+                                        <span>MAC: <span class="text-slate-400">${d.mac}</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                ${statusBadge}
+                            </div>
+                        `;
+                        listEl.appendChild(devCard);
+                    });
+                    lucide.createIcons();
+                } else {
+                    listEl.innerHTML = `<div class="py-8 text-center text-rose-400 text-xs">Không thể tải dữ liệu: ${data.message}</div>`;
+                }
+            } catch (err) {
+                listEl.innerHTML = `<div class="py-8 text-center text-rose-400 text-xs">Lỗi kết nối máy chủ khi tải thiết bị.</div>`;
+            }
+        }
+
+        function closeHomeDevicesModal() {
+            const modal = document.getElementById('homeDevicesModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function filterHomeFromCard(homeId) {
+            const sel = document.getElementById('homeFilter');
+            if (sel) {
+                let found = false;
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value == homeId) {
+                        sel.value = homeId;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    const opt = document.createElement('option');
+                    opt.value = homeId;
+                    opt.textContent = `#${homeId} - Căn hộ #${homeId}`;
+                    opt.className = "bg-slate-800 text-white";
+                    sel.appendChild(opt);
+                    sel.value = homeId;
+                }
+            }
+            loadData(homeId);
+            switchTab('tab-overview');
+            showToast('Bộ lọc Căn hộ', `Đang lọc hiển thị toàn bộ đồ thị theo Căn hộ #${homeId}`, 'info');
+        }
+
+        // ==========================================================
+        // HADOOP REALTIME STREAMING ENGINE CLIENT
+        // ==========================================================
+        function startHadoopStreaming() {
+            if (hadoopStreamInterval) clearInterval(hadoopStreamInterval);
+            hadoopStreamInterval = setInterval(async () => {
+                if (!hadoopStreamingActive) return;
+                try {
+                    const homeIdsParam = currentVisibleHomeIds.length > 0 ? `?home_ids=${currentVisibleHomeIds.join(',')}` : '';
+                    const res = await fetch('/api/hadoop/live-stream' + homeIdsParam);
+                    const batch = await res.json();
+                    if (batch.status === 'SUCCESS') {
+                        updateHadoopRealtimeData(batch);
+                    }
+                } catch (e) {
+                    console.warn("Hadoop stream heartbeat failed:", e);
+                }
+            }, 2500);
+        }
+
+        function toggleHadoopStream() {
+            hadoopStreamingActive = !hadoopStreamingActive;
+            const dot = document.getElementById('streamDot');
+            const txt = document.getElementById('streamStatusText');
+            const btn = document.getElementById('btnToggleStream');
+
+            if (hadoopStreamingActive) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                txt.textContent = "Hadoop Streaming: ON";
+                btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs text-emerald-400 font-medium transition-all shadow-sm cursor-pointer";
+                showToast('Hadoop Stream Engine', 'Đã tiếp tục nạp luồng viễn thám và xử lý MapReduce phân tán.', 'success');
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-slate-500";
+                txt.textContent = "Hadoop Streaming: PAUSED";
+                btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-400 font-medium transition-all shadow-sm cursor-pointer";
+                showToast('Hadoop Stream Engine', 'Đã tạm dừng luồng Hadoop Streaming.', 'warning');
+            }
+        }
+
+        async function triggerHadoopSurge() {
+            try {
+                const targetHome = currentVisibleHomeIds.length > 0 ? currentVisibleHomeIds[0] : null;
+                showToast('Kích hoạt Sự cố Mẫu', 'Đang bơm xung quá nhiệt (>50°C) và quá tải điện (>140%) vào luồng Hadoop...', 'warning');
+                const res = await fetch('/api/hadoop/trigger-surge' + (targetHome ? `?home_id=${targetHome}` : ''), { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'SURGE_TRIGGERED') {
+                    showToast('Xung dữ liệu đã kích hoạt', `Mục tiêu: ${data.target_home_name}. Động cơ Hadoop MapReduce sẽ cảnh báo ngay nhịp kế tiếp!`, 'danger');
+                }
+            } catch (e) {
+                console.error("Error triggering surge:", e);
+            }
+        }
+
+        function updateHadoopRealtimeData(batch) {
+            // 1. Update Ingestion Terminal Bar
+            const block = batch.hadoop_hdfs_block || {};
+            const sys = batch.system_kpi || {};
+
+            if (document.getElementById('liveHdfsBlock')) {
+                document.getElementById('liveHdfsBlock').textContent = block.block_id || 'BLK-1043';
+            }
+            if (document.getElementById('liveDataNode')) {
+                document.getElementById('liveDataNode').textContent = block.datanode || 'datanode-01';
+            }
+            if (document.getElementById('liveThroughput')) {
+                document.getElementById('liveThroughput').textContent = `${block.throughput_kb_sec || 450} KB/s • ${sys.stream_msg_per_sec || 280} msg/s`;
+            }
+            if (document.getElementById('liveMicroBatch')) {
+                const countHomes = batch.homes_live ? batch.homes_live.length : 0;
+                document.getElementById('liveMicroBatch').textContent = `MapReduce Micro-batch: ${block.record_count || 120} tuples / ${countHomes} homes in view`;
+            }
+
+            // 2. Update KPI cards
+            if (document.getElementById('kpi-records')) {
+                document.getElementById('kpi-records').textContent = (sys.total_records || 7000017).toLocaleString();
+            }
+            if (document.getElementById('kpi-energy')) {
+                document.getElementById('kpi-energy').textContent = (sys.total_system_kwh || 0).toLocaleString();
+            }
+            if (document.getElementById('kpi-power')) {
+                document.getElementById('kpi-power').textContent = `${(sys.total_system_power_w || 0).toLocaleString()} W`;
+            }
+
+            // 3. Update Home states in UI elements
+            const liveHomes = batch.homes_live || [];
+            liveHomes.forEach(lh => {
+                const hid = lh.home_id;
+
+                // Update Home Card elements if currently in DOM
+                const wEl = document.getElementById(`home-live-w-${hid}`);
+                if (wEl) wEl.textContent = `${lh.current_power_w.toLocaleString()} W`;
+
+                const kwhEl = document.getElementById(`home-live-kwh-${hid}`);
+                if (kwhEl) kwhEl.textContent = `${lh.accumulated_kwh} kWh`;
+
+                const tempEl = document.getElementById(`home-live-temp-${hid}`);
+                if (tempEl) tempEl.textContent = `${lh.last_temp_c} °C`;
+
+                const badgeEl = document.getElementById(`home-status-badge-${hid}`);
+                const cardEl = document.getElementById(`card-estate-${hid}`);
+                if (badgeEl && cardEl) {
+                    if (lh.status === 'CRITICAL_ALERT') {
+                        cardEl.classList.remove('border-slate-800', 'hover:border-slate-700', 'border-amber-500/40');
+                        cardEl.classList.add('border-rose-500/60', 'ring-1', 'ring-rose-500/30');
+                        badgeEl.innerHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> CẢNH BÁO NGUY HIỂM</span>`;
+                    } else if (lh.status === 'HIGH_LOAD' || lh.current_power_w > 2500) {
+                        badgeEl.innerHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> PHỤ TẢI CAO</span>`;
+                    }
+                }
+
+                // Update Ranking Table in Overview tab if present
+                const rankW = document.getElementById(`rank-live-w-${hid}`);
+                if (rankW) rankW.textContent = `${lh.current_power_w.toLocaleString()} W`;
+
+                const rankKwh = document.getElementById(`rank-live-kwh-${hid}`);
+                if (rankKwh) rankKwh.textContent = `${lh.accumulated_kwh}`;
+            });
+
+            // 4. Check for New Anomalies & Toast
+            const anomalies = batch.anomalies || [];
+            if (anomalies.length > 0) {
+                anomalies.forEach(a => {
+                    const key = `${a.timestamp}-${a.device_id}-${a.reason}`;
+                    if (!knownAnomalyKeys.has(key)) {
+                        knownAnomalyKeys.add(key);
+
+                        // Trigger Toast
+                        showToast(`🚨 CẢNH BÁO BẤT THƯỜNG: ${a.device_name}`, `${a.home_name}: ${a.detail}`, 'danger');
+
+                        // Prepend to Recent Anomalies List
+                        const list = document.getElementById('recentAnomaliesList');
+                        if (list) {
+                            const div = document.createElement('div');
+                            div.className = "p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-xs animate-in fade-in slide-in-from-top-2 duration-300";
+                            div.innerHTML = `
+                                <div class="p-1.5 rounded-lg bg-rose-500/20 text-rose-300 font-bold shrink-0">
+                                    <i data-lucide="flame" class="w-4 h-4"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between gap-1">
+                                        <h4 class="font-bold text-white truncate">${a.device_name} — ${a.home_name}</h4>
+                                        <span class="text-[10px] text-rose-400 font-mono">${a.timestamp.split(' ')[1]}</span>
+                                    </div>
+                                    <p class="text-slate-300 text-[11px] mt-0.5">${a.detail}</p>
+                                </div>
+                            `;
+                            list.prepend(div);
+                            lucide.createIcons();
+                        }
+                    }
+                });
+            }
+        }
+
+        // ==========================================================
+        // DATABASE CONFIGURATION MODAL HANDLERS
+        // ==========================================================
+        function openDbConfigModal() {
+            const m = document.getElementById('dbConfigModal');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+            }
+            checkDbStatus();
+        }
+
+        function closeDbConfigModal() {
+            const m = document.getElementById('dbConfigModal');
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
+            }
+        }
+
+        async function checkDbStatus() {
+            try {
+                const res = await fetch('/api/db/status');
+                const data = await res.json();
+                const statusEl = document.getElementById('modalDbStatus');
+                const homesEl = document.getElementById('modalDbHomes');
+                const btnText = document.getElementById('btnDbStatusText');
+                if (data) {
+                    if (statusEl) statusEl.textContent = data.mysql_connected ? 'MySQL 8.0 Live InnoDB' : (data.db_source || 'MySQL Data Lake Store');
+                    if (homesEl) homesEl.textContent = (data.total_homes || 1000000).toLocaleString();
+                    if (btnText) btnText.textContent = data.mysql_connected ? 'MySQL 8.0: 1M Homes' : 'CSDL: 1,000,000 Homes';
+                }
+            } catch (e) {
+                console.error("Failed to check DB status:", e);
+            }
+        }
+
+        async function submitDbConnect() {
+            const host = document.getElementById('cfgDbHost').value;
+            const port = parseInt(document.getElementById('cfgDbPort').value) || 3306;
+            const user = document.getElementById('cfgDbUser').value;
+            const password = document.getElementById('cfgDbPassword').value;
+            const database = document.getElementById('cfgDbName').value;
+            const fb = document.getElementById('dbConnectFeedback');
+            const btn = document.getElementById('btnSubmitDbConnect');
+
+            if (fb) {
+                fb.className = "p-2.5 rounded-lg text-[11px] font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30 block";
+                fb.textContent = "Đang kiểm tra kết nối tới MySQL 8.0 server...";
+            }
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/db/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ host, port, user, password, database })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (fb) {
+                        fb.className = "p-2.5 rounded-lg text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 block";
+                        fb.textContent = "✓ Kết nối MySQL 8.0 thành công! Đang chuyển sang chế độ Native SQL.";
+                    }
+                    showToast('Kết nối MySQL 8.0', 'Đã chuyển sang truy vấn trực tiếp qua MySQL InnoDB Engine.', 'success');
+                    checkDbStatus();
+                    setTimeout(() => {
+                        closeDbConfigModal();
+                        loadFullHomes(currentHomesPage);
+                    }, 1000);
+                } else {
+                    if (fb) {
+                        fb.className = "p-2.5 rounded-lg text-[11px] font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 block";
+                        fb.textContent = `✗ Không thể kết nối: ${data.error || 'Sai mật khẩu'}. Tiếp tục sử dụng High-speed Data Lake Store.`;
+                    }
+                    showToast('MySQL Connect', data.error || 'Không thể kết nối', 'warning');
+                }
+            } catch (err) {
+                if (fb) {
+                    fb.className = "p-2.5 rounded-lg text-[11px] font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 block";
+                    fb.textContent = "✗ Lỗi mạng kết nối tới API.";
+                }
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================================
+        // TOAST NOTIFICATIONS HELPER
+        // ==========================================================
+        function showToast(title, message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = "pointer-events-auto max-w-sm w-full p-4 rounded-xl shadow-2xl border backdrop-blur-md flex items-start gap-3 transition-all duration-300 transform translate-y-2 opacity-0 text-xs";
+            
+            let bgClass = "bg-slate-900/95 border-slate-700 text-white";
+            let iconMarkup = '<i data-lucide="info" class="w-5 h-5 text-blue-400"></i>';
+
+            if (type === 'danger') {
+                bgClass = "bg-rose-950/90 border-rose-600/80 text-white ring-1 ring-rose-500/30";
+                iconMarkup = '<i data-lucide="alert-octagon" class="w-5 h-5 text-rose-400 animate-pulse"></i>';
+            } else if (type === 'warning') {
+                bgClass = "bg-amber-950/90 border-amber-600/80 text-white";
+                iconMarkup = '<i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400"></i>';
+            } else if (type === 'success') {
+                bgClass = "bg-emerald-950/90 border-emerald-600/80 text-white";
+                iconMarkup = '<i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>';
+            }
+
+            toast.className += ` ${bgClass}`;
+            toast.innerHTML = `
+                <div class="shrink-0 mt-0.5">${iconMarkup}</div>
+                <div class="flex-1">
+                    <h5 class="font-bold text-sm tracking-tight">${title}</h5>
+                    <p class="text-slate-300 text-[11px] mt-0.5 leading-snug">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white shrink-0 p-1 cursor-pointer">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            // Auto dismiss after 6.5 seconds
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-x-full');
+                setTimeout(() => toast.remove(), 400);
+            }, 6500);
         }
 
         async function loadData(homeId) {
@@ -757,6 +1725,9 @@
             document.getElementById('kpi-device-status').textContent = `${kpi.active_devices || 28} Online`;
             document.getElementById('kpi-records').textContent = (kpi.total_telemetry_records || 13506).toLocaleString();
             document.getElementById('kpi-energy').textContent = (kpi.total_system_kwh || 0).toLocaleString();
+            if (document.getElementById('kpi-power')) {
+                document.getElementById('kpi-power').textContent = `${(kpi.total_power_watts || 14820).toLocaleString()} W`;
+            }
             document.getElementById('kpi-peak-pct').textContent = `${kpi.peak_energy_percent || 0}%`;
             document.getElementById('kpi-anomalies').textContent = kpi.total_anomalies_detected || 0;
             document.getElementById('kpi-thermal-count').textContent = `${kpi.thermal_alerts_count || 0}`;
@@ -856,17 +1827,22 @@
             const homeTable = document.getElementById('tableHomeRanking');
             homeTable.innerHTML = '';
             const ranking = data.home_ranking || [];
-            ranking.slice(0, 6).forEach((h, idx) => {
+            ranking.forEach((h, idx) => {
+                const liveObj = (allHomesData.find(x => x.home_id === h.home_id) || {}).live_metrics || {};
+                const liveW = liveObj.current_power_w ? `${liveObj.current_power_w.toLocaleString()} W` : '-- W';
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/40 transition-colors";
+                tr.id = `ranking-row-${h.home_id}`;
+                tr.className = "hover:bg-slate-800/40 transition-colors cursor-pointer";
+                tr.onclick = () => filterHomeFromCard(h.home_id);
                 tr.innerHTML = `
                     <td class="py-2.5 px-3 font-medium text-white flex items-center gap-2">
                         <span class="w-5 h-5 rounded-full bg-slate-800 text-[10px] flex items-center justify-center text-slate-300 font-bold">${idx + 1}</span>
-                        ${h.home_name}
+                        <span class="hover:text-cyan-300 transition-colors">${h.home_name}</span>
                     </td>
                     <td class="py-2.5 px-3 text-slate-400">${h.city}</td>
-                    <td class="py-2.5 px-3">${h.active_devices_count} TB</td>
-                    <td class="py-2.5 px-3 text-right font-semibold text-amber-400">${h.total_kwh}</td>
+                    <td class="py-2.5 px-3 text-slate-300">${h.active_devices_count} TB</td>
+                    <td class="py-2.5 px-3 text-right font-mono text-cyan-300 font-medium" id="rank-live-w-${h.home_id}">${liveW}</td>
+                    <td class="py-2.5 px-3 text-right font-semibold text-amber-400" id="rank-live-kwh-${h.home_id}">${h.total_kwh}</td>
                 `;
                 homeTable.appendChild(tr);
             });
@@ -877,13 +1853,14 @@
             ranking.forEach(h => {
                 const estPrice = Math.round(h.total_kwh * 2500); // 2500d/kWh
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/40 transition-colors";
+                tr.className = "hover:bg-slate-800/40 transition-colors cursor-pointer";
+                tr.onclick = () => filterHomeFromCard(h.home_id);
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-mono text-slate-400">#${h.home_id}</td>
-                    <td class="py-3 px-4 font-medium text-white">${h.home_name}</td>
+                    <td class="py-3 px-4 font-medium text-white hover:text-cyan-300 transition-colors">${h.home_name}</td>
                     <td class="py-3 px-4 text-slate-400">${h.city}</td>
                     <td class="py-3 px-4 text-emerald-400 font-medium">${h.active_devices_count} hoạt động</td>
-                    <td class="py-3 px-4 text-right font-bold text-amber-400">${h.total_kwh} kWh</td>
+                    <td class="py-3 px-4 text-right font-bold text-amber-400" id="fullrank-kwh-${h.home_id}">${h.total_kwh} kWh</td>
                     <td class="py-3 px-4 text-right font-semibold text-emerald-300">${estPrice.toLocaleString()} đ</td>
                 `;
                 fullHomeTable.appendChild(tr);
