@@ -68,4 +68,7 @@ Thumbs.db
 
 # --- Big Data & Large Generated Logs (Optional Override) ---
 *.log
+bulk_data/
+*.csv
 # bigdata/data/device_telemetry.json  # Bỏ chú thích nếu không muốn đẩy tệp viễn thám thô lên GitHub
+

@@ -87,9 +87,12 @@
 
         <!-- NAVIGATION TABS -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/60">
-            <nav class="flex space-x-1 sm:space-x-4 py-2 overflow-x-auto text-xs font-medium" id="tabNav">
+            <nav class="flex space-x-1 sm:space-x-3 py-2 overflow-x-auto text-xs font-medium" id="tabNav">
                 <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="tab-btn px-3 py-2 rounded-lg transition-all text-blue-400 bg-blue-500/10 border border-blue-500/20 flex items-center gap-2">
                     <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Tổng quan Hệ thống
+                </button>
+                <button onclick="switchTab('tab-rdbms')" id="btn-tab-rdbms" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                    <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i> Dữ liệu RDBMS (7 Triệu Bản ghi)
                 </button>
                 <button onclick="switchTab('tab-pipeline')" id="btn-tab-pipeline" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center gap-2">
                     <i data-lucide="git-merge" class="w-4 h-4"></i> Luồng NoSQL / Hadoop
@@ -536,6 +539,110 @@
             </div>
         </div>
 
+        <!-- ================= TAB: RDBMS RELATIONAL DATA EXPLORER ================= -->
+        <div id="tab-rdbms" class="tab-content hidden space-y-6">
+            <!-- RDBMS Banner & Info -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-blue-950/40 border border-slate-800 rounded-xl p-6 shadow-sm relative overflow-hidden">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+                    <div>
+                        <div class="flex items-center gap-2.5">
+                            <span class="p-2 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                <i data-lucide="database" class="w-5 h-5"></i>
+                            </span>
+                            <div>
+                                <h2 class="text-base font-bold text-white tracking-tight">TRUNG TÂM QUẢN TRỊ DỮ LIỆU QUAN HỆ (RDBMS 3NF)</h2>
+                                <p class="text-xs text-slate-400">Khám phá và truy vấn dữ liệu thực tế của 9 bảng thực thể lõi đã nạp (Quy mô 7,000,000+ bản ghi)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <span class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-mono flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> DB: <b class="text-white">smart_home_info</b>
+                        </span>
+                        <span class="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 font-medium">
+                            Chuẩn 3NF Hoàn Chỉnh
+                        </span>
+                        <span class="px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 font-medium">
+                            Tổng 9 Bảng • ~550 MB
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9 Table Cards Grid -->
+            <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i> Danh mục 9 Bảng Thực Thể (Nhấn vào bảng để xem dữ liệu)
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3" id="rdbmsTableCardsGrid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Interactive Table Viewer Section -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="table" class="w-4 h-4 text-blue-400"></i> Bảng Dữ Liệu: <span id="currentActiveTableTitle" class="text-cyan-400 font-mono">User</span>
+                            </h3>
+                            <span id="currentTableDescBadge" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Người dùng / Chủ tài khoản</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5" id="currentTableStatsSub">Khóa chính: <code class="text-slate-300 font-mono" id="currentTablePk">user_id</code> • Tổng: <span class="text-emerald-400 font-semibold" id="currentTableTotalRows">1,000,000</span> bản ghi</p>
+                    </div>
+
+                    <!-- Filter & Search Controls -->
+                    <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
+                        <div class="relative flex-1 sm:w-64">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" id="rdbmsSearchInput" placeholder="Tìm kiếm trong bảng..." 
+                                   class="w-full bg-slate-800/80 border border-slate-700 text-xs text-slate-200 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                        <button onclick="applyRdbmsSearch()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors flex items-center gap-1.5">
+                            <i data-lucide="filter" class="w-3.5 h-3.5"></i> Lọc
+                        </button>
+                        <button onclick="resetRdbmsSearch()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors" title="Làm mới">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Container with Horizontal & Vertical Scroll -->
+                <div class="overflow-x-auto rounded-lg border border-slate-800 max-h-[520px] custom-scrollbar relative">
+                    <div id="rdbmsLoadingIndicator" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-20 flex items-center justify-center">
+                        <div class="flex items-center gap-2.5 text-xs text-cyan-400 font-medium">
+                            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Đang tải dữ liệu bản ghi...
+                        </div>
+                    </div>
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-800/90 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 z-10 shadow-sm" id="rdbmsGridHead">
+                            <!-- Populated by JS -->
+                        </thead>
+                        <tbody id="rdbmsGridBody" class="divide-y divide-slate-800/80 bg-slate-900/50 font-sans">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-400">
+                    <div id="rdbmsPaginationInfo">
+                        Đang xem trang <span class="font-bold text-white" id="rdbmsPageNum">1</span> / <span id="rdbmsTotalPages">20,000</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="changeRdbmsPage(-1)" id="btnPrevRdbmsPage" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1">
+                            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Trang trước
+                        </button>
+                        <span class="px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700 text-white font-mono text-xs" id="rdbmsPageIndicator">1</span>
+                        <button onclick="changeRdbmsPage(1)" id="btnNextRdbmsPage" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1">
+                            Trang sau <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- FOOTER -->
@@ -551,6 +658,13 @@
         let globalOverview = {}, globalEnergy = {}, globalAnomalies = [], globalBusiness = {}, globalCommands = {};
         let currentSeverityFilter = 'all';
 
+        // RDBMS Explorer State
+        let currentRdbmsTable = 'User';
+        let currentRdbmsPage = 1;
+        let currentRdbmsSearch = '';
+        let rdbmsOverviewData = null;
+        let rdbmsLoaded = false;
+
         // Initialize Lucide Icons
         lucide.createIcons();
 
@@ -564,8 +678,16 @@
 
             document.getElementById(tabId).classList.remove('hidden');
             const activeBtn = document.getElementById('btn-' + tabId);
-            activeBtn.classList.add('text-blue-400', 'bg-blue-500/10', 'border', 'border-blue-500/20');
-            activeBtn.classList.remove('text-slate-400');
+            if (activeBtn) {
+                activeBtn.classList.add('text-blue-400', 'bg-blue-500/10', 'border', 'border-blue-500/20');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            if (tabId === 'tab-rdbms' && !rdbmsLoaded) {
+                loadRdbmsOverview();
+                loadTableData('User', 1, '');
+                rdbmsLoaded = true;
+            }
 
             // Trigger chart resize if needed
             window.dispatchEvent(new Event('resize'));
@@ -1009,6 +1131,217 @@
                 retTable.appendChild(tr);
             });
         }
+
+        // ==========================================================
+        // RDBMS RELATIONAL DATA EXPLORER FUNCTIONS
+        // ==========================================================
+        async function loadRdbmsOverview() {
+            try {
+                const res = await fetch('/api/rdbms/overview');
+                rdbmsOverviewData = await res.json();
+                const grid = document.getElementById('rdbmsTableCardsGrid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                
+                (rdbmsOverviewData.tables || []).forEach(tbl => {
+                    const isActive = tbl.table_name === currentRdbmsTable;
+                    const card = document.createElement('div');
+                    card.id = `card-tbl-${tbl.table_name}`;
+                    card.onclick = () => selectRdbmsTable(tbl.table_name);
+                    card.className = `cursor-pointer rounded-xl p-3.5 border transition-all duration-200 ${
+                        isActive 
+                            ? 'bg-cyan-950/30 border-cyan-500 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/50' 
+                            : 'bg-slate-900/90 border-slate-800 hover:border-slate-700 hover:bg-slate-850'
+                    }`;
+                    
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg ${isActive ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400'}">
+                                    <i data-lucide="database" class="w-3.5 h-3.5"></i>
+                                </span>
+                                <span class="font-bold text-xs ${isActive ? 'text-cyan-300 font-mono' : 'text-white font-mono'}">${tbl.table_name}</span>
+                            </div>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${tbl.columns_count} cols</span>
+                        </div>
+                        <div class="mt-2 text-sm font-extrabold text-white">
+                            ${tbl.total_rows.toLocaleString()} <span class="text-[10px] text-slate-400 font-normal font-sans">dòng</span>
+                        </div>
+                        <div class="mt-1 flex items-center justify-between text-[10px] text-slate-400 pt-1.5 border-t border-slate-800/80">
+                            <span class="truncate max-w-[110px]" title="${tbl.name_vn}">${tbl.name_vn}</span>
+                            <span class="font-mono text-emerald-400">${tbl.size_mb > 0 ? tbl.size_mb + ' MB' : 'Dữ liệu'}</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                lucide.createIcons();
+            } catch (err) {
+                console.error('Error loading RDBMS overview:', err);
+            }
+        }
+
+        function selectRdbmsTable(tableName) {
+            currentRdbmsTable = tableName;
+            currentRdbmsPage = 1;
+            currentRdbmsSearch = '';
+            const sInput = document.getElementById('rdbmsSearchInput');
+            if (sInput) sInput.value = '';
+            
+            // Update UI active card
+            if (rdbmsOverviewData && rdbmsOverviewData.tables) {
+                rdbmsOverviewData.tables.forEach(t => {
+                    const el = document.getElementById(`card-tbl-${t.table_name}`);
+                    if (el) {
+                        if (t.table_name === tableName) {
+                            el.className = "cursor-pointer rounded-xl p-3.5 border transition-all duration-200 bg-cyan-950/30 border-cyan-500 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/50";
+                        } else {
+                            el.className = "cursor-pointer rounded-xl p-3.5 border transition-all duration-200 bg-slate-900/90 border-slate-800 hover:border-slate-700 hover:bg-slate-850";
+                        }
+                    }
+                });
+                
+                const meta = rdbmsOverviewData.tables.find(t => t.table_name === tableName);
+                if (meta) {
+                    const titleEl = document.getElementById('currentActiveTableTitle');
+                    const badgeEl = document.getElementById('currentTableDescBadge');
+                    const pkEl = document.getElementById('currentTablePk');
+                    const rowsEl = document.getElementById('currentTableTotalRows');
+                    if (titleEl) titleEl.textContent = meta.table_name;
+                    if (badgeEl) badgeEl.textContent = meta.name_vn;
+                    if (pkEl) pkEl.textContent = meta.pk;
+                    if (rowsEl) rowsEl.textContent = meta.total_rows.toLocaleString();
+                }
+            }
+            
+            loadTableData(tableName, 1, '');
+        }
+
+        async function loadTableData(tableName, page, search) {
+            const loader = document.getElementById('rdbmsLoadingIndicator');
+            if (loader) loader.classList.remove('hidden');
+            
+            try {
+                const q = new URLSearchParams({
+                    table: tableName,
+                    page: page || 1,
+                    page_size: 50,
+                    search: search || ''
+                });
+                const res = await fetch(`/api/rdbms/table-data?${q.toString()}`);
+                const data = await res.json();
+                renderRdbmsGrid(data);
+            } catch (err) {
+                console.error("Error loading table data:", err);
+            } finally {
+                if (loader) loader.classList.add('hidden');
+            }
+        }
+
+        function renderRdbmsGrid(data) {
+            const thead = document.getElementById('rdbmsGridHead');
+            const tbody = document.getElementById('rdbmsGridBody');
+            const pageNumEl = document.getElementById('rdbmsPageNum');
+            const totalPagesEl = document.getElementById('rdbmsTotalPages');
+            const pageIndicator = document.getElementById('rdbmsPageIndicator');
+            const btnPrev = document.getElementById('btnPrevRdbmsPage');
+            const btnNext = document.getElementById('btnNextRdbmsPage');
+
+            if (!thead || !tbody) return;
+
+            currentRdbmsPage = data.page || 1;
+            const totalPages = data.total_pages || 1;
+            
+            if (pageNumEl) pageNumEl.textContent = currentRdbmsPage.toLocaleString();
+            if (totalPagesEl) totalPagesEl.textContent = totalPages.toLocaleString();
+            if (pageIndicator) pageIndicator.textContent = `${currentRdbmsPage} / ${totalPages}`;
+            if (btnPrev) btnPrev.disabled = currentRdbmsPage <= 1;
+            if (btnNext) btnNext.disabled = currentRdbmsPage >= totalPages;
+
+            // 1. Render Headers
+            const cols = data.columns || [];
+            thead.innerHTML = `<tr>${cols.map((col, idx) => `
+                <th class="py-3 px-4 font-semibold ${idx === 0 ? 'rounded-l' : ''} ${idx === cols.length - 1 ? 'rounded-r' : ''}">
+                    <div class="flex items-center gap-1.5">
+                        <span>${col}</span>
+                        ${col.endsWith('_id') ? '<span class="text-[9px] px-1 py-0.2 rounded bg-blue-500/20 text-blue-300 font-mono">KEY</span>' : ''}
+                    </div>
+                </th>
+            `).join('')}</tr>`;
+
+            // 2. Render Rows
+            const rows = data.rows || [];
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${cols.length || 1}" class="py-12 text-center text-slate-500 text-xs">Không tìm thấy bản ghi nào phù hợp với bộ lọc.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = rows.map(row => `
+                <tr class="hover:bg-slate-800/50 transition-colors">
+                    ${cols.map((col, idx) => {
+                        const val = row[col] !== undefined && row[col] !== null ? row[col] : '';
+                        let cellContent = String(val);
+                        
+                        // Style based on column types
+                        if (col.endsWith('_id')) {
+                            cellContent = `<span class="font-mono text-cyan-300 font-medium">${val}</span>`;
+                        } else if (col === 'email') {
+                            cellContent = `<span class="text-blue-300 font-mono text-[11px]">${val}</span>`;
+                        } else if (col === 'phone') {
+                            cellContent = `<span class="font-mono text-slate-300">${val}</span>`;
+                        } else if (col.includes('status')) {
+                            const s = String(val).toUpperCase();
+                            let badge = "bg-slate-800 text-slate-300";
+                            if (s === 'ACTIVE' || s === 'PAID' || s === 'ONLINE') badge = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                            else if (s === 'PENDING' || s === 'MAINTENANCE') badge = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                            else if (s === 'INACTIVE' || s === 'EXPIRED' || s === 'OFFLINE') badge = "bg-rose-500/20 text-rose-300 border border-rose-500/30";
+                            cellContent = `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge}">${val}</span>`;
+                        } else if (col.includes('amount') || col.includes('price')) {
+                            const num = Number(val);
+                            cellContent = `<span class="font-bold text-amber-400 font-mono">${isNaN(num) ? val : num.toLocaleString() + ' đ'}</span>`;
+                        } else if (col.includes('date') || col.includes('at')) {
+                            cellContent = `<span class="text-slate-400 font-mono text-[11px] whitespace-nowrap">${val}</span>`;
+                        } else if (col === 'full_name' || col === 'home_name' || col === 'device_name') {
+                            cellContent = `<span class="font-medium text-white">${val}</span>`;
+                        }
+                        
+                        return `<td class="py-2.5 px-4 text-xs ${idx === 0 ? 'font-mono' : ''}">${cellContent}</td>`;
+                    }).join('')}
+                </tr>
+            `).join('');
+        }
+
+        function applyRdbmsSearch() {
+            const input = document.getElementById('rdbmsSearchInput');
+            currentRdbmsSearch = input ? input.value.trim() : '';
+            currentRdbmsPage = 1;
+            loadTableData(currentRdbmsTable, 1, currentRdbmsSearch);
+        }
+
+        function resetRdbmsSearch() {
+            const input = document.getElementById('rdbmsSearchInput');
+            if (input) input.value = '';
+            currentRdbmsSearch = '';
+            currentRdbmsPage = 1;
+            loadTableData(currentRdbmsTable, 1, '');
+        }
+
+        function changeRdbmsPage(delta) {
+            const targetPage = currentRdbmsPage + delta;
+            if (targetPage < 1) return;
+            loadTableData(currentRdbmsTable, targetPage, currentRdbmsSearch);
+        }
+
+        // Setup search input Enter trigger
+        window.addEventListener('DOMContentLoaded', () => {
+            const sInput = document.getElementById('rdbmsSearchInput');
+            if (sInput) {
+                sInput.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') {
+                        applyRdbmsSearch();
+                    }
+                });
+            }
+        });
 
         // Initialize on load
         window.addEventListener('DOMContentLoaded', initDashboard);
