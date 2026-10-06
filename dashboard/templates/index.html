@@ -917,6 +917,7 @@
         let chartHourly, chartCategory, chartDaily, chartPeak, chartRevenue, chartStatus;
         let globalOverview = {}, globalEnergy = {}, globalAnomalies = [], globalBusiness = {}, globalCommands = {};
         let currentSeverityFilter = 'all';
+        let allHomesData = [];
 
         // RDBMS Explorer State
         let currentRdbmsTable = 'User';
@@ -984,6 +985,7 @@
                 // 1. Fetch Homes for filter dropdown
                 const resHomes = await fetch('/api/homes');
                 const homes = await resHomes.json();
+                allHomesData = homes || [];
                 const sel = document.getElementById('homeFilter');
                 if (sel && homes.length > 0) {
                     homes.forEach(h => {
@@ -1828,7 +1830,9 @@
             homeTable.innerHTML = '';
             const ranking = data.home_ranking || [];
             ranking.forEach((h, idx) => {
-                const liveObj = (allHomesData.find(x => x.home_id === h.home_id) || {}).live_metrics || {};
+                const pool = (Array.isArray(allHomesData) && allHomesData.length > 0) ? allHomesData : (Array.isArray(visibleHomesData) ? visibleHomesData : []);
+                const foundHome = pool.find(x => x.home_id === h.home_id) || {};
+                const liveObj = foundHome.live_metrics || {};
                 const liveW = liveObj.current_power_w ? `${liveObj.current_power_w.toLocaleString()} W` : '-- W';
                 const tr = document.createElement('tr');
                 tr.id = `ranking-row-${h.home_id}`;
